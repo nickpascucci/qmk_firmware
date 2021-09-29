@@ -42,8 +42,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MC(kc) LCTL_T(kc)
 #define MA(kc) LALT_T(kc)
 
-#define THM_1 LT(L_MEDIA, KC_BSPC)
-#define THM_2 LT(L_NAV,   KC_ESC)
+#define THM_1 LT(L_MEDIA, KC_ESC)
+#define THM_2 LT(L_NAV,   KC_BSPC)
 #define THM_3 LT(L_MOUSE, KC_TAB)
 #define THM_4 LT(L_SYM,   KC_ENT)
 #define THM_5 LT(L_NUM,   KC_SPC)
