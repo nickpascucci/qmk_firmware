@@ -160,10 +160,6 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
 
 void oled_render_layer_state(void) {
     oled_write_P(PSTR("Layer: "), false);
-        if (IS_LAYER_ON(L_BASE)) {
-            oled_write_ln_P(PSTR("Default"), false);
-            return;
-        }
         if (IS_LAYER_ON(L_NAV)) {
             oled_write_ln_P(PSTR("Navigation"), false);
             return;
@@ -186,6 +182,15 @@ void oled_render_layer_state(void) {
         }
         if (IS_LAYER_ON(L_FUN)) {
             oled_write_ln_P(PSTR("Function"), false);
+            return;
+        }
+        // Note: these should be last so that if other layers are active they get priority.
+        if (IS_LAYER_ON(L_BASE)) {
+            oled_write_ln_P(PSTR("Default"), false);
+            return;
+        }
+        if (IS_LAYER_ON(L_BALT)) {
+            oled_write_ln_P(PSTR("QWERTY"), false);
             return;
         }
 }
