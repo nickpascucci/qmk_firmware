@@ -24,14 +24,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 // Layer order macros for ease of reference.
-#define L_COLE 0
-#define L_QWER 1
-#define L_MEDIA 2
-#define L_NAV 3
-#define L_MOUSE 4
-#define L_SYM 5
-#define L_NUM 6
-#define L_FUN 7
+#define L_COLE  0
+#define L_MEDIA 1
+#define L_NAV   2
+#define L_MOUSE 3
+#define L_SYM   4
+#define L_NUM   5
+#define L_FUN   6
 
 // Define some helper macros for mod-tap keys. These just give shorter names to these keycodes so
 // that the keymap stays nicely aligned below. They are defined in order from most-interior to
@@ -52,24 +51,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_COLE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-        TO(1),    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_BSPC,
+       KC_TAB,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_BSPC,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       KC_CAPS,MA(KC_A),MG(KC_R),MC(KC_S),MS(KC_T),MH(KC_G),                     MH(KC_M),MS(KC_N),MC(KC_E),MG(KC_I),MA(KC_O), KC_QUOT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       KC_LSFT,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH,  KC_ESC,
-  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                            THM_1,   THM_2,   THM_3,      THM_4,   THM_5,   THM_6 
-                                      //|--------+--------+--------|  |--------+--------+--------|
-
-  ),
-
-  [L_QWER] = LAYOUT_split_3x6_3(
-  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-        TO(0),    KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,                         KC_Y,    KC_U,    KC_I,    KC_O,    KC_P, KC_BSPC,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LCTL,MA(KC_A),MG(KC_S),MC(KC_D),MS(KC_F),MH(KC_G),                     MH(KC_H),MS(KC_J),MC(KC_K),MG(KC_L),MA(KC_SCLN), KC_QUOT,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LSFT,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH,  KC_ESC,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                             THM_1,   THM_2,   THM_3,      THM_4,   THM_5,   THM_6 
                                       //|--------+--------+--------|  |--------+--------+--------|
@@ -187,10 +173,6 @@ void oled_render_layer_state(void) {
         // Note: these should be last so that if other layers are active they get priority.
         if (IS_LAYER_ON(L_COLE)) {
             oled_write_ln_P(PSTR("Colemak"), false);
-            return;
-        }
-        if (IS_LAYER_ON(L_QWER)) {
-            oled_write_ln_P(PSTR("QWERTY"), false);
             return;
         }
 }
