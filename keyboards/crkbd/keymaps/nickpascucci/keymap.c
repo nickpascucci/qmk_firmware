@@ -23,14 +23,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * This layout is loosely inspired by Miryoku, but with a few modifications.
  */
 
+enum custom_keycodes {
+    KC_REPT = SAFE_RANGE // Repeat last key
+};
+
 // Layer order macros for ease of reference.
 #define L_COLE  0
-#define L_MEDIA 1
-#define L_NAV   2
-#define L_MOUSE 3
-#define L_SYM   4
-#define L_NUM   5
-#define L_FUN   6
+#define L_NAV   1
+#define L_NUM   2
+#define L_FUN   3
 
 // Define some helper macros for mod-tap keys. These just give shorter names to these keycodes so
 // that the keymap stays nicely aligned below. They are defined in order from most-interior to
@@ -41,98 +42,71 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MC(kc) LCTL_T(kc)
 #define MA(kc) LALT_T(kc)
 
-#define THM_1 LT(L_MEDIA, KC_ESC)
+#define OSM_ALT OSM(MOD_LALT)
+#define OSM_CTL OSM(MOD_LCTL)
+#define OSM_SFT OSM(MOD_LSFT)
+#define OSM_GUI OSM(MOD_LGUI)
+
+#define THM_1 MH(KC_ESC)
 #define THM_2 LT(L_NAV,   KC_BSPC)
-#define THM_3 LT(L_MOUSE, KC_TAB)
-#define THM_4 LT(L_SYM,   KC_ENT)
+#define THM_3 MG(KC_TAB)
+
+#define THM_4 MG(KC_ENT)
 #define THM_5 LT(L_NUM,   KC_SPC)
-#define THM_6 LT(L_FUN,   KC_EQL)
+#define THM_6 MH(KC_MINS)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_COLE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-       KC_TAB,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_BSPC,
+      OSM_ALT,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_REPT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_CAPS,MA(KC_A),MG(KC_R),MC(KC_S),MS(KC_T),MH(KC_G),                     MH(KC_M),MS(KC_N),MC(KC_E),MG(KC_I),MA(KC_O), KC_QUOT,
+      OSM_SFT,    KC_A,    KC_R,    KC_S,    KC_T,    KC_G,                         KC_M,    KC_N,    KC_E,    KC_I,    KC_O, KC_QUOT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LSFT,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH,  KC_ESC,
+      OSM_CTL,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH,  KC_ESC,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                             THM_1,   THM_2,   THM_3,      THM_4,   THM_5,   THM_6 
                                       //|--------+--------+--------|  |--------+--------+--------|
 
   ),
 
-  [L_MOUSE] = LAYOUT_split_3x6_3(
-  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, KC_ACL2,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_LALT, KC_LGUI, KC_LCTL, KC_LSFT, KC_HYPR,                      KC_MS_L, KC_MS_D, KC_MS_U, KC_MS_R, KC_AGIN, KC_ACL1,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      KC_WH_L, KC_WH_U, KC_WH_D, KC_WH_R, KC_CAPS, KC_ACL0,
-  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, XXXXXXX, XXXXXXX,    KC_BTN1, KC_BTN2, KC_BTN3
-                                      //|--------+--------+--------|  |--------+--------+--------|
-  ),
 
   [L_NAV] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
+      XXXXXXX, KC_WH_U, KC_BTN1, KC_MS_U, KC_BTN2, KC_ACL2,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_LALT, KC_LGUI, KC_LCTL, KC_LSFT, KC_HYPR,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_AGIN, XXXXXXX,
+      XXXXXXX, KC_WH_D, KC_MS_L, KC_MS_D, KC_MS_R, KC_ACL1,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_AGIN, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      KC_HOME, KC_PGDN, KC_PGUP,  KC_END, KC_CAPS, XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_ACL0,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX 
-                                      //|--------+--------+--------|  |--------+--------+--------|
-  ),
-
-  [L_MEDIA] = LAYOUT_split_3x6_3(
-  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      KC_MPLY, KC_MPRV, KC_MNXT, XXXXXXX, XXXXXXX, XXXXXXX,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_LALT, KC_LGUI, KC_LCTL, KC_LSFT, KC_HYPR,                      KC_MUTE, KC_VOLD, KC_VOLU, XXXXXXX, XXXXXXX, XXXXXXX,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
-  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX 
-                                      //|--------+--------+--------|  |--------+--------+--------|
-  ),
-
-  [L_SYM] = LAYOUT_split_3x6_3(
-  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, KC_EXLM,  KC_DLR, KC_AMPR, KC_ASTR, KC_BSLS,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_EQL,  KC_LBRC, KC_LCBR, KC_LPRN, KC_LABK,                      KC_HYPR, KC_LSFT, KC_LCTL, KC_LGUI, KC_LALT, XXXXXXX,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_PERC, KC_RBRC, KC_RCBR, KC_RPRN, KC_RABK,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
-  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                           KC_ESC, KC_BSPC, KC_UNDS,    XXXXXXX, XXXXXXX, XXXXXXX 
+                                          XXXXXXX, XXXXXXX, XXXXXXX,    KC_VOLD, KC_MPLY, KC_VOLU 
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
   [L_NUM] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX,  KC_GRV,    KC_7,    KC_8,    KC_9, KC_PLUS,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+       KC_GRV, KC_EXLM,  KC_DLR, KC_AMPR, KC_ASTR, KC_BSLS,                      XXXXXXX,    KC_7,    KC_8,    KC_9, KC_PLUS, OSL(L_FUN),
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_HASH,    KC_4,    KC_5,    KC_6,  KC_EQL,                      KC_HYPR, KC_LSFT, KC_LCTL, KC_LGUI, KC_LALT, XXXXXXX,
+      KC_HASH, KC_EQL,  KC_LBRC, KC_LCBR, KC_LPRN, KC_LABK,                      XXXXXXX,    KC_4,    KC_5,    KC_6,    KC_0, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,   KC_AT,    KC_1,    KC_2,    KC_3, KC_MINS,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        KC_AT, KC_PERC, KC_RBRC, KC_RCBR, KC_RPRN, KC_RABK,                      XXXXXXX,    KC_1,    KC_2,    KC_3, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                           KC_ESC, KC_BSPC,    KC_0,    XXXXXXX, XXXXXXX, XXXXXXX 
+                                          KC_MINS, KC_BSPC, KC_UNDS,    XXXXXXX, XXXXXXX, XXXXXXX 
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
+
   [L_FUN] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX,  KC_F12,   KC_F7,   KC_F8,   KC_F9, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                       KC_F12,   KC_F7,   KC_F8,   KC_F9, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,  KC_F11,   KC_F4,   KC_F5,   KC_F6, XXXXXXX,                      KC_HYPR, KC_LSFT, KC_LCTL, KC_LGUI, KC_LALT, XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                       KC_F11,   KC_F4,   KC_F5,   KC_F6, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,  KC_F10,   KC_F1,   KC_F2,   KC_F3, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                       KC_F10,   KC_F1,   KC_F2,   KC_F3, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                           KC_ESC, KC_BSPC, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX 
+                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX 
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
+
 };
 
 #ifdef OLED_ENABLE
@@ -148,18 +122,6 @@ void oled_render_layer_state(void) {
     oled_write_P(PSTR("Layer: "), false);
         if (IS_LAYER_ON(L_NAV)) {
             oled_write_ln_P(PSTR("Navigation"), false);
-            return;
-        }
-        if (IS_LAYER_ON(L_MOUSE)) {
-            oled_write_ln_P(PSTR("Mouse"), false);
-            return;
-        }
-        if (IS_LAYER_ON(L_MEDIA)) {
-            oled_write_ln_P(PSTR("Media"), false);
-            return;
-        }
-        if (IS_LAYER_ON(L_SYM)) {
-            oled_write_ln_P(PSTR("Symbols"), false);
             return;
         }
         if (IS_LAYER_ON(L_NUM)) {
@@ -208,8 +170,66 @@ void oled_task_user(void) {
         oled_render_logo();
     }
 }
+#endif // OLED_ENABLE
+
+// Repeat last key along with modifiers.
+// https://gist.github.com/NotGate/3e3d8ab81300a86522b2c2549f99b131
+
+// Used to extract the basic tapping keycode from a dual-role key.
+// Example: GET_TAP_KC(MT(MOD_RSFT, KC_E)) == KC_E
+#define GET_TAP_KC(dual_role_key) dual_role_key & 0xFF
+uint16_t last_keycode = KC_NO;
+uint8_t last_modifier = 0;
+
+// Initialize variables holding the bitfield
+// representation of active modifiers.
+uint8_t mod_state;
+uint8_t oneshot_mod_state;
+
+void process_repeat_key(uint16_t keycode, const keyrecord_t *record) {
+    if (keycode != KC_REPT) {
+        // Early return when holding down a pure layer key
+        // to retain modifiers
+        switch (keycode) {
+            case QK_DEF_LAYER ... QK_DEF_LAYER_MAX:
+            case QK_MOMENTARY ... QK_MOMENTARY_MAX:
+            case QK_LAYER_MOD ... QK_LAYER_MOD_MAX:
+            case QK_ONE_SHOT_LAYER ... QK_ONE_SHOT_LAYER_MAX:
+            case QK_TOGGLE_LAYER ... QK_TOGGLE_LAYER_MAX:
+            case QK_TO ... QK_TO_MAX:
+            case QK_LAYER_TAP_TOGGLE ... QK_LAYER_TAP_TOGGLE_MAX:
+                return;
+        }
+        last_modifier = oneshot_mod_state > mod_state ? oneshot_mod_state : mod_state;
+        switch (keycode) {
+            case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
+            case QK_MOD_TAP ... QK_MOD_TAP_MAX:
+                if (record->event.pressed) {
+                    last_keycode = GET_TAP_KC(keycode);
+                }
+                break;
+            default:
+                if (record->event.pressed) {
+                    last_keycode = keycode;
+                }
+                break;
+        }
+    } else { // keycode == KC_REPT
+        if (record->event.pressed) {
+            register_mods(last_modifier);
+            register_code16(last_keycode);
+        } else {
+            unregister_code16(last_keycode);
+            unregister_mods(last_modifier);
+        }
+    }
+}
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  return true;
+    process_repeat_key(keycode, record);
+    // It's important to update the mod variables *after* calling process_repeat_key, or else
+    // only a single modifier from the previous key is repeated (e.g. Ctrl+Shift+T then Repeat produces Shift+T)
+    mod_state = get_mods();
+    oneshot_mod_state = get_oneshot_mods();
+    return true;
 }
-#endif // OLED_ENABLE
