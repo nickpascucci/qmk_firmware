@@ -36,31 +36,31 @@ enum custom_keycodes {
 // Define some helper macros for mod-tap keys. These just give shorter names to these keycodes so
 // that the keymap stays nicely aligned below. They are defined in order from most-interior to
 // most-exterior.
-#define MH(kc) HYPR_T(kc)
-#define MS(kc) LSFT_T(kc)
-#define MG(kc) LGUI_T(kc)
-#define MC(kc) LCTL_T(kc)
-#define MA(kc) LALT_T(kc)
+#define MH(kc) HYPR_T(KC_ ## kc)
+#define MS(kc) LSFT_T(KC_ ## kc)
+#define MG(kc) LGUI_T(KC_ ## kc)
+#define MC(kc) LCTL_T(KC_ ## kc)
+#define MA(kc) LALT_T(KC_ ## kc)
 
 #define OSM_ALT OSM(MOD_LALT)
 #define OSM_CTL OSM(MOD_LCTL)
 #define OSM_SFT OSM(MOD_LSFT)
 #define OSM_GUI OSM(MOD_LGUI)
 
-#define THM_1 MH(KC_ESC)
+#define THM_1 MH(ESC)
 #define THM_2 LT(L_NAV,   KC_BSPC)
-#define THM_3 MG(KC_TAB)
+#define THM_3 MG(TAB)
 
-#define THM_4 MG(KC_ENT)
+#define THM_4 MG(ENT)
 #define THM_5 LT(L_NUM,   KC_SPC)
-#define THM_6 MH(KC_MINS)
+#define THM_6 MH(MINS)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_COLE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
       OSM_ALT,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_REPT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      OSM_SFT,    KC_A,    KC_R,    KC_S,    KC_T,    KC_G,                         KC_M,    KC_N,    KC_E,    KC_I,    KC_O, KC_QUOT,
+      OSM_SFT,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), KC_QUOT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       OSM_CTL,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH,  KC_ESC,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
@@ -72,11 +72,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [L_NAV] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, KC_WH_U, KC_BTN1, KC_MS_U, KC_BTN2, KC_ACL2,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
+      OSM_ALT, KC_WH_D, KC_BTN1, KC_MS_U, KC_BTN2, KC_ACL2,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_WH_D, KC_MS_L, KC_MS_D, KC_MS_R, KC_ACL1,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_AGIN, XXXXXXX,
+      OSM_SFT, KC_WH_U, KC_MS_L, KC_MS_D, KC_MS_R, KC_ACL1,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_AGIN, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_ACL0,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
+      OSM_CTL, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_ACL0,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           XXXXXXX, XXXXXXX, XXXXXXX,    KC_VOLD, KC_MPLY, KC_VOLU 
                                       //|--------+--------+--------|  |--------+--------+--------|
@@ -84,13 +84,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [L_NUM] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-       KC_GRV, KC_EXLM,  KC_DLR, KC_AMPR, KC_ASTR, KC_BSLS,                      XXXXXXX,    KC_7,    KC_8,    KC_9, KC_PLUS, OSL(L_FUN),
+      OSM_ALT, KC_EXLM,  KC_DLR, KC_AMPR, KC_ASTR, KC_BSLS,                       KC_GRV,    KC_7,    KC_8,    KC_9, KC_PLUS, OSL(L_FUN),
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_HASH, KC_EQL,  KC_LBRC, KC_LCBR, KC_LPRN, KC_LABK,                      XXXXXXX,    KC_4,    KC_5,    KC_6,    KC_0, XXXXXXX,
+      OSM_SFT, MA(EQL),MG(LBRC),MC(LCBR),MS(LPRN),MH(LABK),                     MH(HASH),   MS(4),   MC(5),   MG(6),   MA(0), XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-        KC_AT, KC_PERC, KC_RBRC, KC_RCBR, KC_RPRN, KC_RABK,                      XXXXXXX,    KC_1,    KC_2,    KC_3, XXXXXXX, XXXXXXX,
+      OSM_CTL, KC_PERC, KC_RBRC, KC_RCBR, KC_RPRN, KC_RABK,                        KC_AT,    KC_1,    KC_2,    KC_3, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_MINS, KC_BSPC, KC_UNDS,    XXXXXXX, XXXXXXX, XXXXXXX 
+                                          KC_MINS, KC_BSPC,  KC_TAB,    XXXXXXX, XXXXXXX, XXXXXXX 
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
