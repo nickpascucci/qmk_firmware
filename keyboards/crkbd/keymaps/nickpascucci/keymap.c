@@ -55,6 +55,34 @@ enum custom_keycodes {
 #define THM_5 LT(L_NUM,   KC_SPC)
 #define THM_6 MH(MINS)
 
+const uint16_t PROGMEM combo_ar[] = {MA(A), MG(R), COMBO_END};
+const uint16_t PROGMEM combo_rs[] = {MG(R), MC(S), COMBO_END};
+const uint16_t PROGMEM combo_st[] = {MC(S), MS(T), COMBO_END};
+const uint16_t PROGMEM combo_tg[] = {MS(T), MH(G), COMBO_END};
+
+const uint16_t PROGMEM combo_mn[] = {MH(M), MS(N), COMBO_END};
+const uint16_t PROGMEM combo_ne[] = {MS(N), MC(E), COMBO_END};
+const uint16_t PROGMEM combo_ei[] = {MC(E), MG(I), COMBO_END};
+const uint16_t PROGMEM combo_io[] = {MG(I), MA(O), COMBO_END};
+
+const uint16_t PROGMEM combo_fp[] = {KC_F, KC_P, COMBO_END};
+const uint16_t PROGMEM combo_lu[] = {KC_L, KC_U, COMBO_END};
+
+combo_t key_combos[COMBO_COUNT] = {
+    COMBO(combo_ar, KC_LBRC),
+    COMBO(combo_rs, KC_LCBR),
+    COMBO(combo_st, KC_LPRN),
+    COMBO(combo_tg, KC_LABK),
+
+    COMBO(combo_mn, KC_RABK),
+    COMBO(combo_ne, KC_RPRN),
+    COMBO(combo_ei, KC_RCBR),
+    COMBO(combo_io, KC_RBRC),
+
+    COMBO(combo_fp, KC_LCBR),
+    COMBO(combo_lu, KC_RCBR),
+};
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_COLE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
