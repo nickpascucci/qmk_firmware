@@ -76,10 +76,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define THM_5 LT(L_NUM,   KC_SPC)
 #define THM_6 MH(MINS)
 
+// Pre-declaration for caps word function
+bool process_caps_word(uint16_t keycode, keyrecord_t* record);
+
+static bool caps_word_enabled = false;
+static bool shifted = false;
+
 // Combos allow access to common symbols without shifting layers.
 //
 // In selecting keys to use as combos, it's best to avoid using the pinkies where possible - because
 // they are so much weaker than the other fingers it makes it hard to hit both keys at once.
+
+// Left hand combos
 const uint16_t PROGMEM combo_wf[] = {KC_W, KC_F, COMBO_END};
 const uint16_t PROGMEM combo_fp[] = {KC_F, KC_P, COMBO_END};
 const uint16_t PROGMEM combo_pb[] = {KC_P, KC_B, COMBO_END};
@@ -92,6 +100,10 @@ const uint16_t PROGMEM combo_rs[] = {MG(R), MC(S), COMBO_END};
 const uint16_t PROGMEM combo_st[] = {MC(S), MS(T), COMBO_END};
 const uint16_t PROGMEM combo_tg[] = {MS(T), MH(G), COMBO_END};
 
+// Bilateral combinations
+const uint16_t PROGMEM combo_tn[] = {MS(T), MS(N), COMBO_END};
+
+// Right hand combos
 const uint16_t PROGMEM combo_mn[] = {MH(M), MS(N), COMBO_END};
 const uint16_t PROGMEM combo_ne[] = {MS(N), MC(E), COMBO_END};
 const uint16_t PROGMEM combo_ei[] = {MC(E), MG(I), COMBO_END};
@@ -108,6 +120,7 @@ const uint16_t PROGMEM combo_cp[] = {KC_COMM, KC_DOT, COMBO_END}; // , + .
 // below.
 enum custom_keycodes {
     KC_REPT = SAFE_RANGE, // Repeat last key
+    KC_CAPW, // "caps-word"
     KC_ARRW, // arrow (->)
     KC_DRRW, // double arrow (=>)
     KC_DCLN, // double colon (::)
@@ -143,16 +156,18 @@ combo_t key_combos[COMBO_COUNT] = {
     COMBO(combo_kh, KC_PIPE),
     COMBO(combo_hc, KC_UNDS),
     COMBO(combo_cp, XXXXXXX),
+
+    COMBO(combo_tn, KC_CAPW),
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_COLE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      OSM_ALT,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_REPT,
+      XXXXXXX,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_REPT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      OSM_SFT,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), KC_QUOT,
+      XXXXXXX,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), KC_QUOT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      OSM_CTL,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH,  KC_ESC,
+      XXXXXXX,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH,  KC_ESC,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                             THM_1,   THM_2,   THM_3,      THM_4,   THM_5,   THM_6 
                                       //|--------+--------+--------|  |--------+--------+--------|
@@ -162,11 +177,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [L_NAV] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      OSM_ALT, KC_WH_D, KC_BTN1, KC_MS_U, KC_BTN2, KC_ACL2,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
+      XXXXXXX, KC_WH_D, KC_BTN1, KC_MS_U, KC_BTN2, KC_ACL2,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      OSM_SFT, KC_WH_U, KC_MS_L, KC_MS_D, KC_MS_R, KC_ACL1,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_AGIN, XXXXXXX,
+      XXXXXXX, KC_WH_U, KC_MS_L, KC_MS_D, KC_MS_R, KC_ACL1,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_AGIN, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      OSM_CTL, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_ACL0,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_ACL0,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           XXXXXXX, XXXXXXX, XXXXXXX,    KC_VOLD, KC_MPLY, KC_VOLU 
                                       //|--------+--------+--------|  |--------+--------+--------|
@@ -174,11 +189,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [L_NUM] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      OSM_ALT, KC_EXLM,  KC_DLR, KC_AMPR, KC_ASTR, KC_BSLS,                       KC_GRV,    KC_7,    KC_8,    KC_9, KC_PLUS, OSL(L_FUN),
+      XXXXXXX, KC_EXLM,  KC_DLR, KC_AMPR, KC_ASTR, KC_BSLS,                       KC_GRV,    KC_7,    KC_8,    KC_9, KC_PLUS, OSL(L_FUN),
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      OSM_SFT,  KC_EQL, KC_LBRC, KC_LCBR, KC_LPRN, KC_LABK,                      KC_HASH,    KC_4,    KC_5,    KC_6,    KC_0, XXXXXXX,
+      XXXXXXX,  KC_EQL, KC_LBRC, KC_LCBR, KC_LPRN, KC_LABK,                      KC_HASH,    KC_4,    KC_5,    KC_6,    KC_0, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      OSM_CTL, KC_PERC, KC_RBRC, KC_RCBR, KC_RPRN, KC_RABK,                        KC_AT,    KC_1,    KC_2,    KC_3, XXXXXXX, XXXXXXX,
+      XXXXXXX, KC_PERC, KC_RBRC, KC_RCBR, KC_RPRN, KC_RABK,                        KC_AT,    KC_1,    KC_2,    KC_3, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           KC_MINS, KC_BSPC,  KC_TAB,    XXXXXXX, XXXXXXX, XXXXXXX 
                                       //|--------+--------+--------|  |--------+--------+--------|
@@ -200,7 +215,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    switch (keycode) {
+  if (!process_caps_word(keycode, record)) { return false; }
+
+  switch (keycode) {
+    case KC_CAPW:
+      if (record->event.pressed) {
+        caps_word_enabled = true;
+      }
+      return false;
+
     case KC_ARRW:
       if (record->event.pressed) {
         SEND_STRING("->");
@@ -231,6 +254,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
   }
+
   return true;
 }
 
@@ -297,3 +321,56 @@ void oled_task_user(void) {
 }
 #endif // OLED_ENABLE
 
+// Copied from https://getreuer.info/posts/keyboards/caps-word/index.html
+bool process_caps_word(uint16_t keycode, keyrecord_t* record) {
+  if (!caps_word_enabled) {
+    // // Pressing both shift keys at the same time enables caps word.
+    // if (((get_mods() | get_oneshot_mods()) & MOD_MASK_SHIFT)
+        // == MOD_MASK_SHIFT) {
+      // clear_mods();
+      // clear_oneshot_mods();
+      // shifted = false;
+      // caps_word_enabled = true;
+      // return false;
+    // }
+    return true;
+  }
+
+  if (!record->event.pressed) { return true; }
+
+  if (!((get_mods() | get_oneshot_mods()) & ~MOD_MASK_SHIFT)) {
+    switch (keycode) {
+      case QK_MOD_TAP ... QK_MOD_TAP_MAX:
+      case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
+        // Earlier return if this has not been considered tapped yet.
+        if (record->tap.count == 0) { return true; }
+        // Get the base tapping keycode of a mod- or layer-tap key.
+        keycode &= 0xff;
+    }
+
+    switch (keycode) {
+      // Letter keys should be shifted.
+      case KC_A ... KC_Z:
+        if (!shifted) { register_code(KC_LSFT); }
+        shifted = true;
+        return true;
+
+      // Keycodes that continue caps word but shouldn't get shifted.
+      case KC_1 ... KC_0:
+      case KC_BSPC:
+      case KC_MINS:
+      case KC_UNDS:
+        if (shifted) { unregister_code(KC_LSFT); }
+        shifted = false;
+        return true;
+
+      // Any other keycode disables caps word.
+    }
+  }
+
+  // Disable caps word.
+  caps_word_enabled = false;
+  if (shifted) { unregister_code(KC_LSFT); }
+  shifted = false;
+  return true;
+}
