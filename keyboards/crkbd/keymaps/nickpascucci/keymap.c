@@ -68,19 +68,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OSM_SFT OSM(MOD_LSFT)
 #define OSM_GUI OSM(MOD_LGUI)
 
-#define THM_1 MH(ESC)
+#define THM_1 KC_ESC
 #define THM_2 LT(L_NAV,   KC_BSPC)
-#define THM_3 MG(TAB)
+#define THM_3 KC_TAB
 
-#define THM_4 MG(ENT)
+#define THM_4 KC_ENT
 #define THM_5 LT(L_NUM,   KC_SPC)
-#define THM_6 MH(MINS)
+#define THM_6 KC_REPT // Repeat last character
 
-// Pre-declaration for caps word function
+// Forward declaration for custom key functions
 bool process_caps_word(uint16_t keycode, keyrecord_t* record);
 
 static bool caps_word_enabled = false;
 static bool shifted = false;
+
+void process_repeat_key(uint16_t keycode, const keyrecord_t *record);
 
 // Combos allow access to common symbols without shifting layers.
 //
@@ -177,13 +179,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [L_NAV] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, KC_WH_D, KC_BTN1, KC_MS_U, KC_BTN2, KC_ACL2,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
+      XXXXXXX, KC_ACL2, KC_WH_D, KC_MS_U, KC_WH_U, KC_VOLU,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_WH_U, KC_MS_L, KC_MS_D, KC_MS_R, KC_ACL1,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_AGIN, XXXXXXX,
+      XXXXXXX, KC_ACL1, KC_MS_L, KC_MS_D, KC_MS_R, KC_VOLD,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_AGIN, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_ACL0,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
+      XXXXXXX, KC_ACL0, XXXXXXX, KC_MPRV, KC_MPLY, KC_MNXT,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, XXXXXXX, XXXXXXX,    KC_VOLD, KC_MPLY, KC_VOLU 
+                                          XXXXXXX, XXXXXXX, XXXXXXX,    KC_BTN1, KC_BTN2,TO(L_NAV) 
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
@@ -195,7 +197,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX, KC_PERC, KC_RBRC, KC_RCBR, KC_RPRN, KC_RABK,                        KC_AT,    KC_1,    KC_2,    KC_3, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_MINS, KC_BSPC,  KC_TAB,    XXXXXXX, XXXXXXX, XXXXXXX 
+                                        TO(L_NUM), KC_BSPC,  KC_TAB,    XXXXXXX, XXXXXXX, XXXXXXX
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
@@ -215,6 +217,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  process_repeat_key(keycode, record);
+
   if (!process_caps_word(keycode, record)) { return false; }
 
   switch (keycode) {
@@ -256,6 +260,114 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   }
 
   return true;
+}
+
+// Copied from https://getreuer.info/posts/keyboards/caps-word/index.html
+bool process_caps_word(uint16_t keycode, keyrecord_t* record) {
+  if (!caps_word_enabled) {
+    // // Pressing both shift keys at the same time enables caps word.
+    // if (((get_mods() | get_oneshot_mods()) & MOD_MASK_SHIFT)
+        // == MOD_MASK_SHIFT) {
+      // clear_mods();
+      // clear_oneshot_mods();
+      // shifted = false;
+      // caps_word_enabled = true;
+      // return false;
+    // }
+    return true;
+  }
+
+  if (!record->event.pressed) { return true; }
+
+  if (!((get_mods() | get_oneshot_mods()) & ~MOD_MASK_SHIFT)) {
+    switch (keycode) {
+      case QK_MOD_TAP ... QK_MOD_TAP_MAX:
+      case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
+        // Earlier return if this has not been considered tapped yet.
+        if (record->tap.count == 0) { return true; }
+        // Get the base tapping keycode of a mod- or layer-tap key.
+        keycode &= 0xff;
+    }
+
+    switch (keycode) {
+      // Letter keys should be shifted.
+      case KC_A ... KC_Z:
+        if (!shifted) { register_code(KC_LSFT); }
+        shifted = true;
+        return true;
+
+      // Keycodes that continue caps word but shouldn't get shifted.
+      case KC_1 ... KC_0:
+      case KC_BSPC:
+      case KC_MINS:
+      case KC_UNDS:
+        if (shifted) { unregister_code(KC_LSFT); }
+        shifted = false;
+        return true;
+
+      // Any other keycode disables caps word.
+    }
+  }
+
+  // Disable caps word.
+  caps_word_enabled = false;
+  if (shifted) { unregister_code(KC_LSFT); }
+  shifted = false;
+  return true;
+}
+
+// TODO: this function is broken in the presence of mod taps and macros. It needs some love.
+//
+// https://gist.github.com/NotGate/3e3d8ab81300a86522b2c2549f99b131
+
+// Used to extract the basic tapping keycode from a dual-role key.
+// Example: GET_TAP_KC(MT(MOD_RSFT, KC_E)) == KC_E
+#define GET_TAP_KC(dual_role_key) dual_role_key & 0xFF
+uint16_t last_keycode = KC_NO;
+uint8_t last_modifier = 0;
+
+// Initialize variables holding the bitfield
+// representation of active modifiers.
+uint8_t mod_state;
+uint8_t oneshot_mod_state;
+
+void process_repeat_key(uint16_t keycode, const keyrecord_t *record) {
+    if (keycode != KC_REPT) {
+        // Early return when holding down a pure layer key
+        // to retain modifiers
+        switch (keycode) {
+            case QK_DEF_LAYER ... QK_DEF_LAYER_MAX:
+            case QK_MOMENTARY ... QK_MOMENTARY_MAX:
+            case QK_LAYER_MOD ... QK_LAYER_MOD_MAX:
+            case QK_ONE_SHOT_LAYER ... QK_ONE_SHOT_LAYER_MAX:
+            case QK_TOGGLE_LAYER ... QK_TOGGLE_LAYER_MAX:
+            case QK_TO ... QK_TO_MAX:
+            case QK_LAYER_TAP_TOGGLE ... QK_LAYER_TAP_TOGGLE_MAX:
+                return;
+        }
+        last_modifier = oneshot_mod_state > mod_state ? oneshot_mod_state : mod_state;
+        switch (keycode) {
+            case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
+            case QK_MOD_TAP ... QK_MOD_TAP_MAX:
+                if (record->event.pressed) {
+                    last_keycode = GET_TAP_KC(keycode);
+                }
+                break;
+            default:
+                if (record->event.pressed) {
+                    last_keycode = keycode;
+                }
+                break;
+        }
+    } else { // keycode == KC_REPT
+        if (record->event.pressed) {
+            register_mods(last_modifier);
+            register_code16(last_keycode);
+        } else {
+            unregister_code16(last_keycode);
+            unregister_mods(last_modifier);
+        }
+    }
 }
 
 #ifdef OLED_ENABLE
@@ -320,57 +432,3 @@ void oled_task_user(void) {
     }
 }
 #endif // OLED_ENABLE
-
-// Copied from https://getreuer.info/posts/keyboards/caps-word/index.html
-bool process_caps_word(uint16_t keycode, keyrecord_t* record) {
-  if (!caps_word_enabled) {
-    // // Pressing both shift keys at the same time enables caps word.
-    // if (((get_mods() | get_oneshot_mods()) & MOD_MASK_SHIFT)
-        // == MOD_MASK_SHIFT) {
-      // clear_mods();
-      // clear_oneshot_mods();
-      // shifted = false;
-      // caps_word_enabled = true;
-      // return false;
-    // }
-    return true;
-  }
-
-  if (!record->event.pressed) { return true; }
-
-  if (!((get_mods() | get_oneshot_mods()) & ~MOD_MASK_SHIFT)) {
-    switch (keycode) {
-      case QK_MOD_TAP ... QK_MOD_TAP_MAX:
-      case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
-        // Earlier return if this has not been considered tapped yet.
-        if (record->tap.count == 0) { return true; }
-        // Get the base tapping keycode of a mod- or layer-tap key.
-        keycode &= 0xff;
-    }
-
-    switch (keycode) {
-      // Letter keys should be shifted.
-      case KC_A ... KC_Z:
-        if (!shifted) { register_code(KC_LSFT); }
-        shifted = true;
-        return true;
-
-      // Keycodes that continue caps word but shouldn't get shifted.
-      case KC_1 ... KC_0:
-      case KC_BSPC:
-      case KC_MINS:
-      case KC_UNDS:
-        if (shifted) { unregister_code(KC_LSFT); }
-        shifted = false;
-        return true;
-
-      // Any other keycode disables caps word.
-    }
-  }
-
-  // Disable caps word.
-  caps_word_enabled = false;
-  if (shifted) { unregister_code(KC_LSFT); }
-  shifted = false;
-  return true;
-}
