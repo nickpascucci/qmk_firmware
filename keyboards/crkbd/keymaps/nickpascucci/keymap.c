@@ -21,11 +21,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
  * This layout is loosely inspired by Miryoku, but with a few modifications.
+ *
+ * In order to guide the design of the symbol layers and combos, it is useful to have a sense of
+ * which symbols are used most often. My "symcount" tool can be used to extract this from a corpus
+ * of text. Running it over my current Rust and Python projects, these are the top 15
+ * non-alphanumeric symbols:
+ *
+ * _, 59770
+ * (, 43835
+ * ), 43833
+ * =, 22896
+ * /, 19186
+ * {, 14384
+ * }, 14383
+ * [, 11780
+ * ], 11771
+ * >, 10782
+ * #, 10483
+ * -, 10136
+ * !, 9257
+ * *, 8252
+ * <, 5755
+ * 
+ * As expected, the standard parentheses and underscore characters used for function calls and for
+ * identifiers are the top symbols followed by curly and square braces. Various bigrams, such as the
+ * Rust comment prefix (//) and the single-arrow (->), are also present.
  */
-
-enum custom_keycodes {
-    KC_REPT = SAFE_RANGE // Repeat last key
-};
 
 // Layer order macros for ease of reference.
 #define L_COLE  0
@@ -55,7 +76,18 @@ enum custom_keycodes {
 #define THM_5 LT(L_NUM,   KC_SPC)
 #define THM_6 MH(MINS)
 
-const uint16_t PROGMEM combo_ar[] = {MA(A), MG(R), COMBO_END};
+// Combos allow access to common symbols without shifting layers.
+//
+// In selecting keys to use as combos, it's best to avoid using the pinkies where possible - because
+// they are so much weaker than the other fingers it makes it hard to hit both keys at once.
+const uint16_t PROGMEM combo_wf[] = {KC_W, KC_F, COMBO_END};
+const uint16_t PROGMEM combo_fp[] = {KC_F, KC_P, COMBO_END};
+const uint16_t PROGMEM combo_pb[] = {KC_P, KC_B, COMBO_END};
+
+const uint16_t PROGMEM combo_jl[] = {KC_J, KC_L, COMBO_END};
+const uint16_t PROGMEM combo_lu[] = {KC_L, KC_U, COMBO_END};
+const uint16_t PROGMEM combo_uy[] = {KC_U, KC_Y, COMBO_END};
+
 const uint16_t PROGMEM combo_rs[] = {MG(R), MC(S), COMBO_END};
 const uint16_t PROGMEM combo_st[] = {MC(S), MS(T), COMBO_END};
 const uint16_t PROGMEM combo_tg[] = {MS(T), MH(G), COMBO_END};
@@ -63,24 +95,54 @@ const uint16_t PROGMEM combo_tg[] = {MS(T), MH(G), COMBO_END};
 const uint16_t PROGMEM combo_mn[] = {MH(M), MS(N), COMBO_END};
 const uint16_t PROGMEM combo_ne[] = {MS(N), MC(E), COMBO_END};
 const uint16_t PROGMEM combo_ei[] = {MC(E), MG(I), COMBO_END};
-const uint16_t PROGMEM combo_io[] = {MG(I), MA(O), COMBO_END};
 
-const uint16_t PROGMEM combo_fp[] = {KC_F, KC_P, COMBO_END};
-const uint16_t PROGMEM combo_lu[] = {KC_L, KC_U, COMBO_END};
+const uint16_t PROGMEM combo_xc[] = {KC_X, KC_C, COMBO_END};
+const uint16_t PROGMEM combo_cd[] = {KC_C, KC_D, COMBO_END};
+const uint16_t PROGMEM combo_dv[] = {KC_D, KC_V, COMBO_END};
+
+const uint16_t PROGMEM combo_kh[] = {KC_K, KC_H, COMBO_END};
+const uint16_t PROGMEM combo_hc[] = {KC_H, KC_COMM, COMBO_END}; // H + ,
+const uint16_t PROGMEM combo_cp[] = {KC_COMM, KC_DOT, COMBO_END}; // , + .
+
+// Custom keys can be used for macros. These must be handled in the process_record_user function
+// below.
+enum custom_keycodes {
+    KC_REPT = SAFE_RANGE, // Repeat last key
+    KC_ARRW, // arrow (->)
+    KC_DRRW, // double arrow (=>)
+    KC_DCLN, // double colon (::)
+    KC_DAMP, // double ampersand (&&)
+    KC_DPIP, // double pipe (||)
+};
 
 combo_t key_combos[COMBO_COUNT] = {
-    COMBO(combo_ar, KC_LBRC),
+    // Upper row: programming bigrams
+    COMBO(combo_wf, KC_DPIP),
+    COMBO(combo_fp, KC_DAMP),
+    COMBO(combo_pb, XXXXXXX),
+
+    COMBO(combo_jl, KC_DCLN),
+    COMBO(combo_lu, KC_ARRW),
+    COMBO(combo_uy, KC_DRRW),
+
+    // Home row combos: insert { ( [ ] ) }, with appropriate hand. The symbols < and > can be
+    // inserted from the base layer by shifting "," and ".", respectively.
     COMBO(combo_rs, KC_LCBR),
     COMBO(combo_st, KC_LPRN),
-    COMBO(combo_tg, KC_LABK),
+    COMBO(combo_tg, KC_LBRC),
 
-    COMBO(combo_mn, KC_RABK),
+    COMBO(combo_mn, KC_RBRC),
     COMBO(combo_ne, KC_RPRN),
     COMBO(combo_ei, KC_RCBR),
-    COMBO(combo_io, KC_RBRC),
 
-    COMBO(combo_fp, KC_LCBR),
-    COMBO(combo_lu, KC_RCBR),
+    // Lower row: most common single characters and awkward ones
+    COMBO(combo_xc, XXXXXXX),
+    COMBO(combo_cd, KC_MINS),
+    COMBO(combo_dv, KC_TILD),
+                  
+    COMBO(combo_kh, KC_PIPE),
+    COMBO(combo_hc, KC_UNDS),
+    COMBO(combo_cp, XXXXXXX),
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -136,6 +198,41 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
 };
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+    case KC_ARRW:
+      if (record->event.pressed) {
+        SEND_STRING("->");
+      }
+      return false;
+
+    case KC_DRRW:
+      if (record->event.pressed) {
+        SEND_STRING("=>");
+      }
+      return false;
+
+    case KC_DCLN:
+      if (record->event.pressed) {
+        SEND_STRING("::");
+      }
+      return false;
+
+    case KC_DAMP:
+      if (record->event.pressed) {
+        SEND_STRING("&&");
+      }
+      return false;
+
+    case KC_DPIP:
+      if (record->event.pressed) {
+        SEND_STRING("||");
+      }
+      return false;
+  }
+  return true;
+}
 
 #ifdef OLED_ENABLE
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
@@ -200,64 +297,3 @@ void oled_task_user(void) {
 }
 #endif // OLED_ENABLE
 
-// Repeat last key along with modifiers.
-// https://gist.github.com/NotGate/3e3d8ab81300a86522b2c2549f99b131
-
-// Used to extract the basic tapping keycode from a dual-role key.
-// Example: GET_TAP_KC(MT(MOD_RSFT, KC_E)) == KC_E
-#define GET_TAP_KC(dual_role_key) dual_role_key & 0xFF
-uint16_t last_keycode = KC_NO;
-uint8_t last_modifier = 0;
-
-// Initialize variables holding the bitfield
-// representation of active modifiers.
-uint8_t mod_state;
-uint8_t oneshot_mod_state;
-
-void process_repeat_key(uint16_t keycode, const keyrecord_t *record) {
-    if (keycode != KC_REPT) {
-        // Early return when holding down a pure layer key
-        // to retain modifiers
-        switch (keycode) {
-            case QK_DEF_LAYER ... QK_DEF_LAYER_MAX:
-            case QK_MOMENTARY ... QK_MOMENTARY_MAX:
-            case QK_LAYER_MOD ... QK_LAYER_MOD_MAX:
-            case QK_ONE_SHOT_LAYER ... QK_ONE_SHOT_LAYER_MAX:
-            case QK_TOGGLE_LAYER ... QK_TOGGLE_LAYER_MAX:
-            case QK_TO ... QK_TO_MAX:
-            case QK_LAYER_TAP_TOGGLE ... QK_LAYER_TAP_TOGGLE_MAX:
-                return;
-        }
-        last_modifier = oneshot_mod_state > mod_state ? oneshot_mod_state : mod_state;
-        switch (keycode) {
-            case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
-            case QK_MOD_TAP ... QK_MOD_TAP_MAX:
-                if (record->event.pressed) {
-                    last_keycode = GET_TAP_KC(keycode);
-                }
-                break;
-            default:
-                if (record->event.pressed) {
-                    last_keycode = keycode;
-                }
-                break;
-        }
-    } else { // keycode == KC_REPT
-        if (record->event.pressed) {
-            register_mods(last_modifier);
-            register_code16(last_keycode);
-        } else {
-            unregister_code16(last_keycode);
-            unregister_mods(last_modifier);
-        }
-    }
-}
-
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    process_repeat_key(keycode, record);
-    // It's important to update the mod variables *after* calling process_repeat_key, or else
-    // only a single modifier from the previous key is repeated (e.g. Ctrl+Shift+T then Repeat produces Shift+T)
-    mod_state = get_mods();
-    oneshot_mod_state = get_oneshot_mods();
-    return true;
-}
