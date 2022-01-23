@@ -1,21 +1,3 @@
-/*
-Copyright 2019 @foostan
-Copyright 2020 Drashna Jaelre <@drashna>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include QMK_KEYBOARD_H
 #include <stdio.h>
 
@@ -56,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Define some helper macros for mod-tap keys. These just give shorter names to these keycodes so
 // that the keymap stays nicely aligned below. They are defined in order from most-interior to
+
 // most-exterior.
 #define MH(kc) HYPR_T(KC_ ## kc)
 #define MS(kc) LSFT_T(KC_ ## kc)
@@ -84,6 +67,10 @@ static bool shifted = false;
 
 void process_repeat_key(uint16_t keycode, const keyrecord_t *record);
 
+// Initialize variables holding the bitfield
+// representation of active modifiers.
+uint8_t mod_state;
+uint8_t oneshot_mod_state;
 // Combos allow access to common symbols without shifting layers.
 //
 // In selecting keys to use as combos, it's best to avoid using the pinkies where possible - because
@@ -102,6 +89,8 @@ const uint16_t PROGMEM combo_rs[] = {MG(R), MC(S), COMBO_END};
 const uint16_t PROGMEM combo_st[] = {MC(S), MS(T), COMBO_END};
 const uint16_t PROGMEM combo_tg[] = {MS(T), MH(G), COMBO_END};
 
+const uint16_t PROGMEM combo_rst[] = {MG(R), MC(S), MS(T), COMBO_END};
+
 // Bilateral combinations
 const uint16_t PROGMEM combo_tn[] = {MS(T), MS(N), COMBO_END};
 
@@ -109,6 +98,8 @@ const uint16_t PROGMEM combo_tn[] = {MS(T), MS(N), COMBO_END};
 const uint16_t PROGMEM combo_mn[] = {MH(M), MS(N), COMBO_END};
 const uint16_t PROGMEM combo_ne[] = {MS(N), MC(E), COMBO_END};
 const uint16_t PROGMEM combo_ei[] = {MC(E), MG(I), COMBO_END};
+
+const uint16_t PROGMEM combo_nei[] = {MS(N), MC(E), MG(I), COMBO_END};
 
 const uint16_t PROGMEM combo_xc[] = {KC_X, KC_C, COMBO_END};
 const uint16_t PROGMEM combo_cd[] = {KC_C, KC_D, COMBO_END};
@@ -133,31 +124,31 @@ enum custom_keycodes {
 combo_t key_combos[COMBO_COUNT] = {
     // Upper row: programming bigrams
     COMBO(combo_wf, KC_DPIP),
-    COMBO(combo_fp, KC_DAMP),
-    COMBO(combo_pb, XXXXXXX),
+    COMBO(combo_fp, LCTL(KC_6)), // Vim: change to alternate buffer
+    COMBO(combo_pb, KC_DAMP),
 
     COMBO(combo_jl, KC_DCLN),
     COMBO(combo_lu, KC_ARRW),
     COMBO(combo_uy, KC_DRRW),
 
-    // Home row combos: insert { ( [ ] ) }, with appropriate hand. The symbols < and > can be
+    // Home row combos: insert [ ' ( ) " ], with appropriate hand. The symbols < and > can be
     // inserted from the base layer by shifting "," and ".", respectively.
-    COMBO(combo_rs, KC_LCBR),
-    COMBO(combo_st, KC_LPRN),
-    COMBO(combo_tg, KC_LBRC),
-
-    COMBO(combo_mn, KC_RBRC),
-    COMBO(combo_ne, KC_RPRN),
-    COMBO(combo_ei, KC_RCBR),
+    COMBO(combo_rs, KC_LBRC),
+    COMBO(combo_st, KC_QUOT),
+    COMBO(combo_tg, KC_LPRN),
+    
+    COMBO(combo_mn, KC_RPRN),
+    COMBO(combo_ne, KC_DQUO),
+    COMBO(combo_ei, KC_RBRC),
 
     // Lower row: most common single characters and awkward ones
-    COMBO(combo_xc, XXXXXXX),
+    COMBO(combo_xc, KC_HASH),
     COMBO(combo_cd, KC_MINS),
-    COMBO(combo_dv, KC_TILD),
+    COMBO(combo_dv, KC_GRV),
                   
     COMBO(combo_kh, KC_PIPE),
     COMBO(combo_hc, KC_UNDS),
-    COMBO(combo_cp, XXXXXXX),
+    COMBO(combo_cp, KC_EQL),
 
     COMBO(combo_tn, KC_CAPW),
 };
@@ -165,11 +156,11 @@ combo_t key_combos[COMBO_COUNT] = {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_COLE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_REPT,
+      XXXXXXX,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), KC_QUOT,
+      XXXXXXX,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH,  KC_ESC,
+      XXXXXXX,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                             THM_1,   THM_2,   THM_3,      THM_4,   THM_5,   THM_6 
                                       //|--------+--------+--------|  |--------+--------+--------|
@@ -191,11 +182,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [L_NUM] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, KC_EXLM,  KC_DLR, KC_AMPR, KC_ASTR, KC_BSLS,                       KC_GRV,    KC_7,    KC_8,    KC_9, KC_PLUS, OSL(L_FUN),
+      XXXXXXX, KC_EXLM,  KC_DLR, KC_AMPR, KC_ASTR, KC_BSLS,                       KC_GRV,    KC_7,    KC_8,    KC_9, KC_PLUS, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX,  KC_EQL, KC_LBRC, KC_LCBR, KC_LPRN, KC_LABK,                      KC_HASH,    KC_4,    KC_5,    KC_6,    KC_0, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_PERC, KC_RBRC, KC_RCBR, KC_RPRN, KC_RABK,                        KC_AT,    KC_1,    KC_2,    KC_3, XXXXXXX, XXXXXXX,
+      XXXXXXX, KC_PERC, KC_RBRC, KC_RCBR, KC_RPRN, KC_RABK,                        KC_AT,    KC_1,    KC_2,    KC_3, OSL(L_FUN), XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                         TO(L_NUM), KC_BSPC,  KC_TAB,    XXXXXXX, XXXXXXX, XXXXXXX
                                       //|--------+--------+--------|  |--------+--------+--------|
@@ -217,9 +208,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  if (!process_caps_word(keycode, record)) { return false; }
+
   process_repeat_key(keycode, record);
 
-  if (!process_caps_word(keycode, record)) { return false; }
+  mod_state = get_mods();
+  oneshot_mod_state = get_oneshot_mods();
 
   switch (keycode) {
     case KC_CAPW:
@@ -316,20 +310,12 @@ bool process_caps_word(uint16_t keycode, keyrecord_t* record) {
   return true;
 }
 
-// TODO: this function is broken in the presence of mod taps and macros. It needs some love.
-//
 // https://gist.github.com/NotGate/3e3d8ab81300a86522b2c2549f99b131
-
 // Used to extract the basic tapping keycode from a dual-role key.
 // Example: GET_TAP_KC(MT(MOD_RSFT, KC_E)) == KC_E
 #define GET_TAP_KC(dual_role_key) dual_role_key & 0xFF
 uint16_t last_keycode = KC_NO;
 uint8_t last_modifier = 0;
-
-// Initialize variables holding the bitfield
-// representation of active modifiers.
-uint8_t mod_state;
-uint8_t oneshot_mod_state;
 
 void process_repeat_key(uint16_t keycode, const keyrecord_t *record) {
     if (keycode != KC_REPT) {
