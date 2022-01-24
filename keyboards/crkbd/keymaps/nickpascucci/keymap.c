@@ -259,15 +259,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 // Copied from https://getreuer.info/posts/keyboards/caps-word/index.html
 bool process_caps_word(uint16_t keycode, keyrecord_t* record) {
   if (!caps_word_enabled) {
-    // // Pressing both shift keys at the same time enables caps word.
-    // if (((get_mods() | get_oneshot_mods()) & MOD_MASK_SHIFT)
-        // == MOD_MASK_SHIFT) {
-      // clear_mods();
-      // clear_oneshot_mods();
-      // shifted = false;
-      // caps_word_enabled = true;
-      // return false;
-    // }
     return true;
   }
 
