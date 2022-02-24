@@ -57,15 +57,13 @@
 
 #define THM_4 KC_ENT
 #define THM_5 LT(L_NUM,   KC_SPC)
-#define THM_6 KC_REPT // Repeat last character
+#define THM_6 XXXXXXX
 
 // Forward declaration for custom key functions
 bool process_caps_word(uint16_t keycode, keyrecord_t* record);
 
 static bool caps_word_enabled = false;
 static bool shifted = false;
-
-void process_repeat_key(uint16_t keycode, const keyrecord_t *record);
 
 // Initialize variables holding the bitfield
 // representation of active modifiers.
@@ -76,7 +74,6 @@ uint8_t oneshot_mod_state;
 // In selecting keys to use as combos, it's best to avoid using the pinkies where possible - because
 // they are so much weaker than the other fingers it makes it hard to hit both keys at once.
 
-// Left hand combos
 const uint16_t PROGMEM combo_wf[] = {KC_W, KC_F, COMBO_END};
 const uint16_t PROGMEM combo_fp[] = {KC_F, KC_P, COMBO_END};
 const uint16_t PROGMEM combo_pb[] = {KC_P, KC_B, COMBO_END};
@@ -85,35 +82,12 @@ const uint16_t PROGMEM combo_jl[] = {KC_J, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_lu[] = {KC_L, KC_U, COMBO_END};
 const uint16_t PROGMEM combo_uy[] = {KC_U, KC_Y, COMBO_END};
 
-/* const uint16_t PROGMEM combo_rs[] = {MG(R), MC(S), COMBO_END}; */
-/* const uint16_t PROGMEM combo_st[] = {MC(S), MS(T), COMBO_END}; */
-/* const uint16_t PROGMEM combo_tg[] = {MS(T), MH(G), COMBO_END}; */
-
-const uint16_t PROGMEM combo_rst[] = {MG(R), MC(S), MS(T), COMBO_END};
-
-// Bilateral combinations
 const uint16_t PROGMEM combo_tn[] = {MS(T), MS(N), COMBO_END};
-
-// Right hand combos
-/* const uint16_t PROGMEM combo_mn[] = {MH(M), MS(N), COMBO_END}; */
-/* const uint16_t PROGMEM combo_ne[] = {MS(N), MC(E), COMBO_END}; */
-/* const uint16_t PROGMEM combo_ei[] = {MC(E), MG(I), COMBO_END}; */
-
-const uint16_t PROGMEM combo_nei[] = {MS(N), MC(E), MG(I), COMBO_END};
-
-const uint16_t PROGMEM combo_xc[] = {KC_X, KC_C, COMBO_END};
-const uint16_t PROGMEM combo_cd[] = {KC_C, KC_D, COMBO_END};
-const uint16_t PROGMEM combo_dv[] = {KC_D, KC_V, COMBO_END};
-
-const uint16_t PROGMEM combo_kh[] = {KC_K, KC_H, COMBO_END};
-const uint16_t PROGMEM combo_hc[] = {KC_H, KC_COMM, COMBO_END}; // H + ,
-const uint16_t PROGMEM combo_cp[] = {KC_COMM, KC_DOT, COMBO_END}; // , + .
 
 // Custom keys can be used for macros. These must be handled in the process_record_user function
 // below.
 enum custom_keycodes {
-    KC_REPT = SAFE_RANGE, // Repeat last key
-    KC_CAPW, // "caps-word"
+    KC_CAPW = SAFE_RANGE, // "caps-word"
     KC_ARRW, // arrow (->)
     KC_DRRW, // double arrow (=>)
     KC_DCLN, // double colon (::)
@@ -131,32 +105,14 @@ combo_t key_combos[COMBO_COUNT] = {
     COMBO(combo_lu, KC_ARRW),
     COMBO(combo_uy, KC_DRRW),
 
-    // Home row combos: insert [ ' ( ) " ], with appropriate hand. The symbols < and > can be
-    // inserted from the base layer by shifting "," and ".", respectively.
-    /* COMBO(combo_rs, KC_LBRC), */
-    /* COMBO(combo_st, KC_QUOT), */
-    /* COMBO(combo_tg, KC_LPRN), */
-    
-    /* COMBO(combo_mn, KC_RPRN), */
-    /* COMBO(combo_ne, KC_DQUO), */
-    /* COMBO(combo_ei, KC_RBRC), */
-
-    // Lower row: most common single characters and awkward ones
-    /* COMBO(combo_xc, KC_HASH), */
-    /* COMBO(combo_cd, KC_MINS), */
-    /* COMBO(combo_dv, KC_GRV), */
-                  
-    /* COMBO(combo_kh, KC_PIPE), */
-    /* COMBO(combo_hc, KC_UNDS), */
-    /* COMBO(combo_cp, KC_EQL), */
-
+    // Caps Word
     COMBO(combo_tn, KC_CAPW),
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_COLE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_MINS,
+       KC_GRV,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_MINS,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       KC_LPRN,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), KC_QUOT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
@@ -209,8 +165,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (!process_caps_word(keycode, record)) { return false; }
-
-  process_repeat_key(keycode, record);
 
   mod_state = get_mods();
   oneshot_mod_state = get_oneshot_mods();
@@ -299,52 +253,6 @@ bool process_caps_word(uint16_t keycode, keyrecord_t* record) {
   if (shifted) { unregister_code(KC_LSFT); }
   shifted = false;
   return true;
-}
-
-// https://gist.github.com/NotGate/3e3d8ab81300a86522b2c2549f99b131
-// Used to extract the basic tapping keycode from a dual-role key.
-// Example: GET_TAP_KC(MT(MOD_RSFT, KC_E)) == KC_E
-#define GET_TAP_KC(dual_role_key) dual_role_key & 0xFF
-uint16_t last_keycode = KC_NO;
-uint8_t last_modifier = 0;
-
-void process_repeat_key(uint16_t keycode, const keyrecord_t *record) {
-    if (keycode != KC_REPT) {
-        // Early return when holding down a pure layer key
-        // to retain modifiers
-        switch (keycode) {
-            case QK_DEF_LAYER ... QK_DEF_LAYER_MAX:
-            case QK_MOMENTARY ... QK_MOMENTARY_MAX:
-            case QK_LAYER_MOD ... QK_LAYER_MOD_MAX:
-            case QK_ONE_SHOT_LAYER ... QK_ONE_SHOT_LAYER_MAX:
-            case QK_TOGGLE_LAYER ... QK_TOGGLE_LAYER_MAX:
-            case QK_TO ... QK_TO_MAX:
-            case QK_LAYER_TAP_TOGGLE ... QK_LAYER_TAP_TOGGLE_MAX:
-                return;
-        }
-        last_modifier = oneshot_mod_state > mod_state ? oneshot_mod_state : mod_state;
-        switch (keycode) {
-            case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
-            case QK_MOD_TAP ... QK_MOD_TAP_MAX:
-                if (record->event.pressed) {
-                    last_keycode = GET_TAP_KC(keycode);
-                }
-                break;
-            default:
-                if (record->event.pressed) {
-                    last_keycode = keycode;
-                }
-                break;
-        }
-    } else { // keycode == KC_REPT
-        if (record->event.pressed) {
-            register_mods(last_modifier);
-            register_code16(last_keycode);
-        } else {
-            unregister_code16(last_keycode);
-            unregister_mods(last_modifier);
-        }
-    }
 }
 
 #ifdef OLED_ENABLE
