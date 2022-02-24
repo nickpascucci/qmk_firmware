@@ -85,9 +85,9 @@ const uint16_t PROGMEM combo_jl[] = {KC_J, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_lu[] = {KC_L, KC_U, COMBO_END};
 const uint16_t PROGMEM combo_uy[] = {KC_U, KC_Y, COMBO_END};
 
-const uint16_t PROGMEM combo_rs[] = {MG(R), MC(S), COMBO_END};
-const uint16_t PROGMEM combo_st[] = {MC(S), MS(T), COMBO_END};
-const uint16_t PROGMEM combo_tg[] = {MS(T), MH(G), COMBO_END};
+/* const uint16_t PROGMEM combo_rs[] = {MG(R), MC(S), COMBO_END}; */
+/* const uint16_t PROGMEM combo_st[] = {MC(S), MS(T), COMBO_END}; */
+/* const uint16_t PROGMEM combo_tg[] = {MS(T), MH(G), COMBO_END}; */
 
 const uint16_t PROGMEM combo_rst[] = {MG(R), MC(S), MS(T), COMBO_END};
 
@@ -95,9 +95,9 @@ const uint16_t PROGMEM combo_rst[] = {MG(R), MC(S), MS(T), COMBO_END};
 const uint16_t PROGMEM combo_tn[] = {MS(T), MS(N), COMBO_END};
 
 // Right hand combos
-const uint16_t PROGMEM combo_mn[] = {MH(M), MS(N), COMBO_END};
-const uint16_t PROGMEM combo_ne[] = {MS(N), MC(E), COMBO_END};
-const uint16_t PROGMEM combo_ei[] = {MC(E), MG(I), COMBO_END};
+/* const uint16_t PROGMEM combo_mn[] = {MH(M), MS(N), COMBO_END}; */
+/* const uint16_t PROGMEM combo_ne[] = {MS(N), MC(E), COMBO_END}; */
+/* const uint16_t PROGMEM combo_ei[] = {MC(E), MG(I), COMBO_END}; */
 
 const uint16_t PROGMEM combo_nei[] = {MS(N), MC(E), MG(I), COMBO_END};
 
@@ -133,22 +133,22 @@ combo_t key_combos[COMBO_COUNT] = {
 
     // Home row combos: insert [ ' ( ) " ], with appropriate hand. The symbols < and > can be
     // inserted from the base layer by shifting "," and ".", respectively.
-    COMBO(combo_rs, KC_LBRC),
-    COMBO(combo_st, KC_QUOT),
-    COMBO(combo_tg, KC_LPRN),
+    /* COMBO(combo_rs, KC_LBRC), */
+    /* COMBO(combo_st, KC_QUOT), */
+    /* COMBO(combo_tg, KC_LPRN), */
     
-    COMBO(combo_mn, KC_RPRN),
-    COMBO(combo_ne, KC_DQUO),
-    COMBO(combo_ei, KC_RBRC),
+    /* COMBO(combo_mn, KC_RPRN), */
+    /* COMBO(combo_ne, KC_DQUO), */
+    /* COMBO(combo_ei, KC_RBRC), */
 
     // Lower row: most common single characters and awkward ones
-    COMBO(combo_xc, KC_HASH),
-    COMBO(combo_cd, KC_MINS),
-    COMBO(combo_dv, KC_GRV),
+    /* COMBO(combo_xc, KC_HASH), */
+    /* COMBO(combo_cd, KC_MINS), */
+    /* COMBO(combo_dv, KC_GRV), */
                   
-    COMBO(combo_kh, KC_PIPE),
-    COMBO(combo_hc, KC_UNDS),
-    COMBO(combo_cp, KC_EQL),
+    /* COMBO(combo_kh, KC_PIPE), */
+    /* COMBO(combo_hc, KC_UNDS), */
+    /* COMBO(combo_cp, KC_EQL), */
 
     COMBO(combo_tn, KC_CAPW),
 };
@@ -156,11 +156,11 @@ combo_t key_combos[COMBO_COUNT] = {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_COLE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, XXXXXXX,
+      XXXXXXX,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_MINS,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), XXXXXXX,
+      KC_LPRN,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), KC_QUOT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH, XXXXXXX,
+      KC_LCBR,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH, KC_LBRC,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                             THM_1,   THM_2,   THM_3,      THM_4,   THM_5,   THM_6 
                                       //|--------+--------+--------|  |--------+--------+--------|
