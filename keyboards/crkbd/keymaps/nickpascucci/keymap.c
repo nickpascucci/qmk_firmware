@@ -72,6 +72,22 @@ static bool shifted = false;
 // representation of active modifiers.
 uint8_t mod_state;
 uint8_t oneshot_mod_state;
+
+typedef struct {
+  uint16_t keycode;
+  uint16_t shifted_keycode;
+} custom_shift_key_t;
+
+bool process_custom_shift_keys(uint16_t keycode, keyrecord_t *record);
+
+const custom_shift_key_t custom_shift_keys[] = {
+  {KC_LPRN, KC_RPRN}, // Shift ( is )
+  {KC_LBRC, KC_RBRC}, // Shift [ is ]
+  {KC_LCBR, KC_RCBR}, // Shift { is }
+};
+uint8_t NUM_CUSTOM_SHIFT_KEYS =
+    sizeof(custom_shift_keys) / sizeof(custom_shift_key_t);
+
 // Combos allow access to common symbols without shifting layers.
 //
 // In selecting keys to use as combos, it's best to avoid using the pinkies where possible - because
@@ -204,6 +220,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (!process_caps_word(keycode, record)) { return false; }
+  if (!process_custom_shift_keys(keycode, record)) { return false; }
 
   mod_state = get_mods();
   oneshot_mod_state = get_oneshot_mods();
@@ -291,6 +308,45 @@ bool process_caps_word(uint16_t keycode, keyrecord_t* record) {
   caps_word_enabled = false;
   if (shifted) { unregister_code(KC_LSFT); }
   shifted = false;
+  return true;
+}
+
+bool process_custom_shift_keys(uint16_t keycode, keyrecord_t *record) {
+  static uint16_t registered_keycode = KC_NO;
+
+  // If a custom shift key is registered, then this event is either
+  // releasing it or manipulating another key at the same time. Either way,
+  // we release the currently registered key.
+  if (registered_keycode != KC_NO) {
+    unregister_code16(registered_keycode);
+    registered_keycode = KC_NO;
+  }
+
+  // Search for a custom key with keycode equal to `keycode`.
+  for (int i = 0; i < NUM_CUSTOM_SHIFT_KEYS; ++i) {
+    if (keycode == custom_shift_keys[i].keycode) {
+      if (record->event.pressed) {
+        const uint8_t mods = get_mods();
+#ifndef NO_ACTION_ONESHOT
+        if ((mods | get_oneshot_mods()) & MOD_MASK_SHIFT) {
+          del_oneshot_mods(MOD_MASK_SHIFT);
+#else
+        if (mods & MOD_MASK_SHIFT) {
+#endif  // NO_ACTION_ONESHOT
+          del_mods(MOD_MASK_SHIFT);
+          registered_keycode = custom_shift_keys[i].shifted_keycode;
+        } else {
+          registered_keycode = custom_shift_keys[i].keycode;
+        }
+
+        register_code16(registered_keycode);
+        set_mods(mods);  // Restore the mods.
+      }
+
+      return false;
+    }
+  }
+
   return true;
 }
 
