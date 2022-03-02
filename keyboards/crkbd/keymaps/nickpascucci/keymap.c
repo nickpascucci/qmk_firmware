@@ -120,9 +120,9 @@ combo_t key_combos[COMBO_COUNT] = {
     COMBO(combo_fp, LCTL(KC_6)), // Vim: change to alternate buffer
     COMBO(combo_pb, KC_DAMP),
 
-    COMBO(combo_jl, KC_ARRW),
+    COMBO(combo_jl, KC_DRRW),
     COMBO(combo_lu, KC_DCLN),
-    COMBO(combo_uy, KC_DRRW),
+    COMBO(combo_uy, KC_ARRW),
 
     // Caps Word
     COMBO(combo_tn, KC_CAPW),
