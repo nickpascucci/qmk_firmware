@@ -58,9 +58,9 @@
 #define THM_2 LT(L_NAV,   KC_BSPC)
 #define THM_3 LT(L_NUM,   KC_TAB)
 
-#define THM_4 LT(L_MOUS,  KC_ENT)
+#define THM_4 LT(L_MED,   KC_ENT)
 #define THM_5 LT(L_SYM,   KC_SPC)
-#define THM_6 LT(L_MED,   KC_EQL)
+#define THM_6 KC_EQL
 
 // Forward declaration for custom key functions
 bool process_caps_word(uint16_t keycode, keyrecord_t* record);
@@ -174,7 +174,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX,TO(L_MOUS) 
+                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, TO(L_MOUS) 
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
@@ -186,7 +186,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX, KC_ACL0, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_BTN3, KC_BTN1, KC_BTN2, TO(L_COLE), XXXXXXX, XXXXXXX,
+                                          KC_BTN3, KC_BTN1, KC_BTN2,    XXXXXXX, XXXXXXX, TO(L_COLE),
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
