@@ -229,6 +229,56 @@ void process_record_handler(keyrecord_t *record) {
     process_action(record, action);
 }
 
+#ifdef BILATERAL_COMBINATIONS
+static struct {
+    bool active;
+    uint8_t code;
+    uint8_t tap;
+    uint8_t mods;
+    bool left;
+} bilateral_combinations = { false };
+
+static bool bilateral_combinations_left(keypos_t key) {
+#    ifdef SPLIT_KEYBOARD
+    return key.row < MATRIX_ROWS / 2;
+#    else
+    if (MATRIX_COLS > MATRIX_ROWS) {
+        return key.col < MATRIX_COLS / 2;
+    } else {
+        return key.row < MATRIX_ROWS / 2;
+    }
+#    endif
+}
+
+static void bilateral_combinations_hold(action_t action, keyevent_t event) {
+    dprint("BILATERAL_COMBINATIONS: hold\n");
+    bilateral_combinations.active = true;
+    bilateral_combinations.code = action.key.code;
+    bilateral_combinations.tap = action.layer_tap.code;
+    bilateral_combinations.mods = (action.kind.id == ACT_LMODS_TAP) ? action.key.mods : action.key.mods << 4;
+    bilateral_combinations.left = bilateral_combinations_left(event.key);
+}
+
+static void bilateral_combinations_release(uint8_t code) {
+    dprint("BILATERAL_COMBINATIONS: release\n");
+    if (bilateral_combinations.active && (code == bilateral_combinations.code)) {
+        bilateral_combinations.active = false;
+    }
+}
+
+static void bilateral_combinations_tap(keyevent_t event) {
+    dprint("BILATERAL_COMBINATIONS: tap\n");
+    if (bilateral_combinations.active) {
+        if (bilateral_combinations_left(event.key) == bilateral_combinations.left) {
+            dprint("BILATERAL_COMBINATIONS: change\n");
+            unregister_mods(bilateral_combinations.mods);
+            tap_code(bilateral_combinations.tap);
+        }
+        bilateral_combinations.active = false;
+    }
+}
+#endif
+
 #if defined(PS2_MOUSE_ENABLE) || defined(POINTING_DEVICE_ENABLE)
 void register_button(bool pressed, enum mouse_buttons button) {
 #    ifdef PS2_MOUSE_ENABLE
@@ -282,6 +332,12 @@ void process_action(keyrecord_t *record, action_t action) {
                     }
                     send_keyboard_report();
                 }
+#ifdef BILATERAL_COMBINATIONS
+                if (!(IS_MOD(action.key.code) || action.key.code == KC_NO)) {
+                    // regular keycode tap during mod-tap hold
+                    bilateral_combinations_tap(event);
+                }
+#endif
                 register_code(action.key.code);
             } else {
                 unregister_code(action.key.code);
@@ -369,12 +425,20 @@ void process_action(keyrecord_t *record, action_t action) {
                             } else
 #    endif
                             {
+#    ifdef BILATERAL_COMBINATIONS
+                                // mod-tap tap
+                                bilateral_combinations_tap(event);
+#    endif
                                 dprint("MODS_TAP: Tap: register_code\n");
                                 register_code(action.key.code);
                             }
                         } else {
                             dprint("MODS_TAP: No tap: add_mods\n");
                             register_mods(mods);
+#    ifdef BILATERAL_COMBINATIONS
+                            // mod-tap hold
+                            bilateral_combinations_hold(action, event);
+#    endif
                         }
                     } else {
                         if (tap_count > 0) {
@@ -388,6 +452,10 @@ void process_action(keyrecord_t *record, action_t action) {
                         } else {
                             dprint("MODS_TAP: No tap: add_mods\n");
                             unregister_mods(mods);
+#    ifdef BILATERAL_COMBINATIONS
+                            // mod-tap release
+                            bilateral_combinations_release(action.key.code);
+#    endif
                         }
                     }
                     break;
@@ -561,6 +629,10 @@ void process_action(keyrecord_t *record, action_t action) {
                     /* tap key */
                     if (event.pressed) {
                         if (tap_count > 0) {
+#        ifdef BILATERAL_COMBINATIONS
+                            // layer-tap tap
+                            bilateral_combinations_tap(event);
+#        endif
                             dprint("KEYMAP_TAP_KEY: Tap: register_code\n");
                             register_code(action.layer_tap.code);
                         } else {
