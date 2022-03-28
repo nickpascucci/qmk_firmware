@@ -1,0 +1,2 @@
+COMBO_ENABLE = yes
+PCBDOWN = yes

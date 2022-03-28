@@ -265,7 +265,21 @@ static bool bilateral_combinations_left(keypos_t key) {
     return key.row < MATRIX_ROWS / 2;
 #    else
     if (MATRIX_COLS > MATRIX_ROWS) {
+      if (MATRIX_COLS % 2 == 0) { // The keyboard is symmetric
         return key.col < MATRIX_COLS / 2;
+      } else { // Weird board with an extra column; mix the center column by rows
+        if (key.col < MATRIX_COLS / 2) {
+          return true;
+        }
+#        ifdef PCBDOWN
+        if (key.col == MATRIX_COLS / 2 && key.row % 2 == 1) {
+#        else
+        if (key.col == MATRIX_COLS / 2 && key.row % 2 == 0) {
+#        endif
+          return true;
+        }
+        return false;
+      }
     } else {
         return key.row < MATRIX_ROWS / 2;
     }
