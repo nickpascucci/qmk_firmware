@@ -24,7 +24,7 @@
  * !, 9257
  * *, 8252
  * <, 5755
- * 
+ *
  * As expected, the standard parentheses and underscore characters used for function calls and for
  * identifiers are the top symbols followed by curly and square braces. Various bigrams, such as the
  * Rust comment prefix (//) and the single-arrow (->), are also present.
@@ -157,7 +157,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       KC_LCBR,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH, KC_LBRC,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                            THM_1,   THM_2,   THM_3,      THM_4,   THM_5,   THM_6 
+                                            THM_1,   THM_2,   THM_3,      THM_4,   THM_5,   THM_6
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
@@ -193,7 +193,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, TO(L_MOUS) 
+                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, TO(L_MOUS)
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
@@ -229,7 +229,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                       KC_F10,   KC_F1,   KC_F2,   KC_F3, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX 
+                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
@@ -341,25 +341,25 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     case KC_SPCL:
       if (record->event.pressed) {
-        SEND_STRING(SS_LCTRL(SS_TAP(X_LEFT)));
+        SEND_STRING(SS_LCTL(SS_TAP(X_LEFT)));
       }
       return false;
 
     case KC_SPCR:
       if (record->event.pressed) {
-        SEND_STRING(SS_LCTRL(SS_TAP(X_RIGHT)));
+        SEND_STRING(SS_LCTL(SS_TAP(X_RIGHT)));
       }
       return false;
 
     case KC_MSNC:
       if (record->event.pressed) {
-        SEND_STRING(SS_LCTRL(SS_TAP(X_UP)));
+        SEND_STRING(SS_LCTL(SS_TAP(X_UP)));
       }
       return false;
 
     case KC_EXPS:
       if (record->event.pressed) {
-        SEND_STRING(SS_LCTRL(SS_TAP(X_DOWN)));
+        SEND_STRING(SS_LCTL(SS_TAP(X_DOWN)));
       }
       return false;
   }
