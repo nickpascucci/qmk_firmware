@@ -1,5 +1,5 @@
 #include QMK_KEYBOARD_H
-#include <stdio.h>
+#include <print.h>
 
 /*
  * This layout is loosely inspired by Miryoku, but with a few modifications.
@@ -33,8 +33,11 @@
 // Layer order macros for ease of reference.
 #define L_COLE  0
 #define L_NAV   1
-#define L_NUM   2
-#define L_FUN   3
+#define L_MOUS  2
+#define L_SYM   3
+#define L_NUM   4
+#define L_FUN   5
+#define L_MED   6
 
 // Define some helper macros for mod-tap keys. These just give shorter names to these keycodes so
 // that the keymap stays nicely aligned below. They are defined in order from most-interior to
@@ -53,11 +56,11 @@
 
 #define THM_1 KC_ESC
 #define THM_2 LT(L_NAV,   KC_BSPC)
-#define THM_3 KC_TAB
+#define THM_3 LT(L_NUM,   KC_TAB)
 
-#define THM_4 KC_ENT
-#define THM_5 LT(L_NUM,   KC_SPC)
-#define THM_6 KC_REPT // Repeat last character
+#define THM_4 LT(L_MED,   KC_ENT)
+#define THM_5 LT(L_SYM,   KC_SPC)
+#define THM_6 KC_EQL
 
 // Forward declaration for custom key functions
 bool process_caps_word(uint16_t keycode, keyrecord_t* record);
@@ -65,18 +68,31 @@ bool process_caps_word(uint16_t keycode, keyrecord_t* record);
 static bool caps_word_enabled = false;
 static bool shifted = false;
 
-void process_repeat_key(uint16_t keycode, const keyrecord_t *record);
-
 // Initialize variables holding the bitfield
 // representation of active modifiers.
 uint8_t mod_state;
 uint8_t oneshot_mod_state;
+
+typedef struct {
+  uint16_t keycode;
+  uint16_t shifted_keycode;
+} custom_shift_key_t;
+
+bool process_custom_shift_keys(uint16_t keycode, keyrecord_t *record);
+
+const custom_shift_key_t custom_shift_keys[] = {
+  {KC_LPRN, KC_RPRN}, // "Shift + (" gives ")"
+  {KC_LBRC, KC_RBRC}, // "Shift + [" gives "]"
+  {KC_LCBR, KC_RCBR}, // "Shift + {" gives "}"
+};
+uint8_t NUM_CUSTOM_SHIFT_KEYS =
+    sizeof(custom_shift_keys) / sizeof(custom_shift_key_t);
+
 // Combos allow access to common symbols without shifting layers.
 //
 // In selecting keys to use as combos, it's best to avoid using the pinkies where possible - because
 // they are so much weaker than the other fingers it makes it hard to hit both keys at once.
 
-// Left hand combos
 const uint16_t PROGMEM combo_wf[] = {KC_W, KC_F, COMBO_END};
 const uint16_t PROGMEM combo_fp[] = {KC_F, KC_P, COMBO_END};
 const uint16_t PROGMEM combo_pb[] = {KC_P, KC_B, COMBO_END};
@@ -85,40 +101,22 @@ const uint16_t PROGMEM combo_jl[] = {KC_J, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_lu[] = {KC_L, KC_U, COMBO_END};
 const uint16_t PROGMEM combo_uy[] = {KC_U, KC_Y, COMBO_END};
 
-const uint16_t PROGMEM combo_rs[] = {MG(R), MC(S), COMBO_END};
-const uint16_t PROGMEM combo_st[] = {MC(S), MS(T), COMBO_END};
-const uint16_t PROGMEM combo_tg[] = {MS(T), MH(G), COMBO_END};
-
-const uint16_t PROGMEM combo_rst[] = {MG(R), MC(S), MS(T), COMBO_END};
-
-// Bilateral combinations
 const uint16_t PROGMEM combo_tn[] = {MS(T), MS(N), COMBO_END};
-
-// Right hand combos
-const uint16_t PROGMEM combo_mn[] = {MH(M), MS(N), COMBO_END};
-const uint16_t PROGMEM combo_ne[] = {MS(N), MC(E), COMBO_END};
-const uint16_t PROGMEM combo_ei[] = {MC(E), MG(I), COMBO_END};
-
-const uint16_t PROGMEM combo_nei[] = {MS(N), MC(E), MG(I), COMBO_END};
-
-const uint16_t PROGMEM combo_xc[] = {KC_X, KC_C, COMBO_END};
-const uint16_t PROGMEM combo_cd[] = {KC_C, KC_D, COMBO_END};
-const uint16_t PROGMEM combo_dv[] = {KC_D, KC_V, COMBO_END};
-
-const uint16_t PROGMEM combo_kh[] = {KC_K, KC_H, COMBO_END};
-const uint16_t PROGMEM combo_hc[] = {KC_H, KC_COMM, COMBO_END}; // H + ,
-const uint16_t PROGMEM combo_cp[] = {KC_COMM, KC_DOT, COMBO_END}; // , + .
 
 // Custom keys can be used for macros. These must be handled in the process_record_user function
 // below.
 enum custom_keycodes {
-    KC_REPT = SAFE_RANGE, // Repeat last key
-    KC_CAPW, // "caps-word"
+    KC_CAPW = SAFE_RANGE, // "caps-word"
     KC_ARRW, // arrow (->)
     KC_DRRW, // double arrow (=>)
     KC_DCLN, // double colon (::)
     KC_DAMP, // double ampersand (&&)
     KC_DPIP, // double pipe (||)
+    KC_TIME, // print key timings to debug output
+    KC_SPCL, // go to the next space to the left
+    KC_SPCR, // go to the next space to the right
+    KC_MSNC, // open mission control
+    KC_EXPS, // open expose view
 };
 
 combo_t key_combos[COMBO_COUNT] = {
@@ -127,71 +125,101 @@ combo_t key_combos[COMBO_COUNT] = {
     COMBO(combo_fp, LCTL(KC_6)), // Vim: change to alternate buffer
     COMBO(combo_pb, KC_DAMP),
 
-    COMBO(combo_jl, KC_DCLN),
-    COMBO(combo_lu, KC_ARRW),
-    COMBO(combo_uy, KC_DRRW),
+    COMBO(combo_jl, KC_DRRW),
+    COMBO(combo_lu, KC_DCLN),
+    COMBO(combo_uy, KC_ARRW),
 
-    // Home row combos: insert [ ' ( ) " ], with appropriate hand. The symbols < and > can be
-    // inserted from the base layer by shifting "," and ".", respectively.
-    COMBO(combo_rs, KC_LBRC),
-    COMBO(combo_st, KC_QUOT),
-    COMBO(combo_tg, KC_LPRN),
-    
-    COMBO(combo_mn, KC_RPRN),
-    COMBO(combo_ne, KC_DQUO),
-    COMBO(combo_ei, KC_RBRC),
-
-    // Lower row: most common single characters and awkward ones
-    COMBO(combo_xc, KC_HASH),
-    COMBO(combo_cd, KC_MINS),
-    COMBO(combo_dv, KC_GRV),
-                  
-    COMBO(combo_kh, KC_PIPE),
-    COMBO(combo_hc, KC_UNDS),
-    COMBO(combo_cp, KC_EQL),
-
+    // Caps Word
     COMBO(combo_tn, KC_CAPW),
 };
+
+// Array containing the aggregate timing of keystrokes since last restart.
+// First element is the total time spent holding the key. Second is the number of presses. Divide
+// top by bottom to get the average hold time.
+typedef struct {
+    uint32_t time;
+    uint32_t presses;
+} keytiming_t;
+
+#ifdef CONSOLE_ENABLE
+static keytiming_t key_timings[MATRIX_ROWS][MATRIX_COLS];
+
+// Tracks when the current key was first pressed; see record_key_timings.
+static uint16_t key_down_time = 0;
+#endif
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_COLE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, XXXXXXX,
+       KC_GRV,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_MINS,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), XXXXXXX,
+      KC_LPRN,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), KC_QUOT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH, XXXXXXX,
+      KC_LCBR,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH, KC_LBRC,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                             THM_1,   THM_2,   THM_3,      THM_4,   THM_5,   THM_6 
                                       //|--------+--------+--------|  |--------+--------+--------|
-
   ),
 
-
-  [L_NAV] = LAYOUT_split_3x6_3(
+  [L_SYM] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, KC_ACL2, KC_WH_D, KC_MS_U, KC_WH_U, KC_VOLU,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
+      KC_BSLS, KC_EXLM,   KC_AT, KC_HASH,  KC_DLR, KC_PERC,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_ACL1, KC_MS_L, KC_MS_D, KC_MS_R, KC_VOLD,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_AGIN, XXXXXXX,
+       KC_EQL, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN,                      KC_HYPR, KC_RSFT, KC_RCTL, KC_RGUI, KC_RALT, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_ACL0, XXXXXXX, KC_MPRV, KC_MPLY, KC_MNXT,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
+      XXXXXXX, XXXXXXX, KC_LBRC, KC_RBRC, KC_LCBR, KC_RCBR,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, XXXXXXX, XXXXXXX,    KC_BTN1, KC_BTN2,TO(L_NAV) 
+                                          XXXXXXX, KC_BSPC,  KC_TAB,    XXXXXXX, XXXXXXX, XXXXXXX
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
   [L_NUM] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, KC_EXLM,  KC_DLR, KC_AMPR, KC_ASTR, KC_BSLS,                       KC_GRV,    KC_7,    KC_8,    KC_9, KC_PLUS, XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_TIME,                      KC_MSNC,    KC_7,    KC_8,    KC_9, KC_PLUS, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,  KC_EQL, KC_LBRC, KC_LCBR, KC_LPRN, KC_LABK,                      KC_HASH,    KC_4,    KC_5,    KC_6,    KC_0, XXXXXXX,
+      XXXXXXX, KC_LALT, KC_LGUI, KC_LCTL, KC_LSFT, KC_HYPR,                      KC_SPCL,    KC_4,    KC_5,    KC_6,    KC_0, KC_SPCR,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_PERC, KC_RBRC, KC_RCBR, KC_RPRN, KC_RABK,                        KC_AT,    KC_1,    KC_2,    KC_3, OSL(L_FUN), XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      KC_EXPS,    KC_1,    KC_2,    KC_3, OSL(L_FUN), XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                        TO(L_NUM), KC_BSPC,  KC_TAB,    XXXXXXX, XXXXXXX, XXXXXXX
+                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
+  [L_NAV] = LAYOUT_split_3x6_3(
+  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      XXXXXXX, KC_LALT, KC_LGUI, KC_LCTL, KC_LSFT, KC_HYPR,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_AGIN, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
+                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, TO(L_MOUS) 
+                                      //|--------+--------+--------|  |--------+--------+--------|
+  ),
+
+  [L_MOUS] = LAYOUT_split_3x6_3(
+  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
+      XXXXXXX, KC_ACL2, KC_WH_D, KC_MS_U, KC_WH_U, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      XXXXXXX, KC_ACL1, KC_MS_L, KC_MS_D, KC_MS_R, XXXXXXX,                      KC_HYPR, KC_RSFT, KC_RCTL, KC_RGUI, KC_RALT, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      XXXXXXX, KC_ACL0, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
+                                          KC_BTN3, KC_BTN1, KC_BTN2,    XXXXXXX, XXXXXXX, TO(L_COLE)
+                                      //|--------+--------+--------|  |--------+--------+--------|
+  ),
+
+  [L_MED] = LAYOUT_split_3x6_3(
+  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      XXXXXXX, XXXXXXX, KC_MPRV, KC_VOLD, KC_VOLU, KC_MNXT,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
+                                          XXXXXXX, KC_MPLY, KC_MUTE,    XXXXXXX, XXXXXXX, XXXXXXX
+                                      //|--------+--------+--------|  |--------+--------+--------|
+  ),
 
   [L_FUN] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
@@ -207,10 +235,63 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 };
 
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  if (!process_caps_word(keycode, record)) { return false; }
+void keyboard_post_init_user(void) {
+  debug_enable = true;
+}
 
-  process_repeat_key(keycode, record);
+void record_key_timings(keyrecord_t *record) {
+#ifdef CONSOLE_ENABLE
+  if (IS_PRESSED(record->event) && key_down_time == 0) {
+    // Remember when the key was pressed, so we can compute the hold time later.
+    key_down_time = timer_read32();
+  } else if (IS_RELEASED(record->event) && key_down_time != 0) {
+    // On release, if we are tracking a key hold, update the corresponding timing record.
+    uint8_t row = record->event.key.row;
+    uint8_t col = record->event.key.col;
+
+    keytiming_t *timing = &key_timings[row][col];
+
+    timing->time = timing->time + timer_elapsed32(key_down_time);
+    timing->presses = timing->presses + 1;
+
+    uprintf("%u,%u,", row, col);
+    uprintf("%u,", timing->time);
+    uprintf("%u\r\n", timing->presses);
+
+    key_down_time = 0;
+  }
+#endif
+}
+
+// Print timing data to the debug output
+void dump_timings(void) {
+#ifdef CONSOLE_ENABLE
+  uprintf("=== Timing Info ===\r\n");
+  uprintf("row,col,time,presses,avg\r\n");
+  keytiming_t *timing;
+  for (int row = 0; row < MATRIX_ROWS; row++) {
+    for (int col = 0; col < MATRIX_COLS; col++) {
+      timing = &key_timings[row][col];
+      uint32_t avg_time = timing->time / timing->presses;
+      // If we have no data, don't print out 0/0
+      if (timing->presses == 0) {
+        avg_time = 0;
+      }
+      // Formatting a u32 is a lot of work, so do one per line. Otherwise this just prints out '0'.
+      uprintf("%u,%u,", row, col);
+      uprintf("%u,", timing->time);
+      uprintf("%u,", timing->presses);
+      uprintf("%u\r\n", avg_time);
+    }
+  }
+#endif
+}
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  record_key_timings(record);
+
+  if (!process_caps_word(keycode, record)) { return false; }
+  if (!process_custom_shift_keys(keycode, record)) { return false; }
 
   mod_state = get_mods();
   oneshot_mod_state = get_oneshot_mods();
@@ -251,6 +332,36 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         SEND_STRING("||");
       }
       return false;
+
+    case KC_TIME:
+      if (record->event.pressed) {
+        dump_timings();
+      }
+      return false;
+
+    case KC_SPCL:
+      if (record->event.pressed) {
+        SEND_STRING(SS_LCTRL(SS_TAP(X_LEFT)));
+      }
+      return false;
+
+    case KC_SPCR:
+      if (record->event.pressed) {
+        SEND_STRING(SS_LCTRL(SS_TAP(X_RIGHT)));
+      }
+      return false;
+
+    case KC_MSNC:
+      if (record->event.pressed) {
+        SEND_STRING(SS_LCTRL(SS_TAP(X_UP)));
+      }
+      return false;
+
+    case KC_EXPS:
+      if (record->event.pressed) {
+        SEND_STRING(SS_LCTRL(SS_TAP(X_DOWN)));
+      }
+      return false;
   }
 
   return true;
@@ -275,8 +386,10 @@ bool process_caps_word(uint16_t keycode, keyrecord_t* record) {
     }
 
     switch (keycode) {
-      // Letter keys should be shifted.
+      // Letter keys and - should be shifted.
       case KC_A ... KC_Z:
+      case KC_MINS:
+      case KC_UNDS:
         if (!shifted) { register_code(KC_LSFT); }
         shifted = true;
         return true;
@@ -284,8 +397,6 @@ bool process_caps_word(uint16_t keycode, keyrecord_t* record) {
       // Keycodes that continue caps word but shouldn't get shifted.
       case KC_1 ... KC_0:
       case KC_BSPC:
-      case KC_MINS:
-      case KC_UNDS:
         if (shifted) { unregister_code(KC_LSFT); }
         shifted = false;
         return true;
@@ -301,50 +412,43 @@ bool process_caps_word(uint16_t keycode, keyrecord_t* record) {
   return true;
 }
 
-// https://gist.github.com/NotGate/3e3d8ab81300a86522b2c2549f99b131
-// Used to extract the basic tapping keycode from a dual-role key.
-// Example: GET_TAP_KC(MT(MOD_RSFT, KC_E)) == KC_E
-#define GET_TAP_KC(dual_role_key) dual_role_key & 0xFF
-uint16_t last_keycode = KC_NO;
-uint8_t last_modifier = 0;
+bool process_custom_shift_keys(uint16_t keycode, keyrecord_t *record) {
+  static uint16_t registered_keycode = KC_NO;
 
-void process_repeat_key(uint16_t keycode, const keyrecord_t *record) {
-    if (keycode != KC_REPT) {
-        // Early return when holding down a pure layer key
-        // to retain modifiers
-        switch (keycode) {
-            case QK_DEF_LAYER ... QK_DEF_LAYER_MAX:
-            case QK_MOMENTARY ... QK_MOMENTARY_MAX:
-            case QK_LAYER_MOD ... QK_LAYER_MOD_MAX:
-            case QK_ONE_SHOT_LAYER ... QK_ONE_SHOT_LAYER_MAX:
-            case QK_TOGGLE_LAYER ... QK_TOGGLE_LAYER_MAX:
-            case QK_TO ... QK_TO_MAX:
-            case QK_LAYER_TAP_TOGGLE ... QK_LAYER_TAP_TOGGLE_MAX:
-                return;
-        }
-        last_modifier = oneshot_mod_state > mod_state ? oneshot_mod_state : mod_state;
-        switch (keycode) {
-            case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
-            case QK_MOD_TAP ... QK_MOD_TAP_MAX:
-                if (record->event.pressed) {
-                    last_keycode = GET_TAP_KC(keycode);
-                }
-                break;
-            default:
-                if (record->event.pressed) {
-                    last_keycode = keycode;
-                }
-                break;
-        }
-    } else { // keycode == KC_REPT
-        if (record->event.pressed) {
-            register_mods(last_modifier);
-            register_code16(last_keycode);
+  // If a custom shift key is registered, then this event is either
+  // releasing it or manipulating another key at the same time. Either way,
+  // we release the currently registered key.
+  if (registered_keycode != KC_NO) {
+    unregister_code16(registered_keycode);
+    registered_keycode = KC_NO;
+  }
+
+  // Search for a custom key with keycode equal to `keycode`.
+  for (int i = 0; i < NUM_CUSTOM_SHIFT_KEYS; ++i) {
+    if (keycode == custom_shift_keys[i].keycode) {
+      if (record->event.pressed) {
+        const uint8_t mods = get_mods();
+#ifndef NO_ACTION_ONESHOT
+        if ((mods | get_oneshot_mods()) & MOD_MASK_SHIFT) {
+          del_oneshot_mods(MOD_MASK_SHIFT);
+#else
+        if (mods & MOD_MASK_SHIFT) {
+#endif  // NO_ACTION_ONESHOT
+          del_mods(MOD_MASK_SHIFT);
+          registered_keycode = custom_shift_keys[i].shifted_keycode;
         } else {
-            unregister_code16(last_keycode);
-            unregister_mods(last_modifier);
+          registered_keycode = custom_shift_keys[i].keycode;
         }
+
+        register_code16(registered_keycode);
+        set_mods(mods);  // Restore the mods.
+      }
+
+      return false;
     }
+  }
+
+  return true;
 }
 
 #ifdef OLED_ENABLE
@@ -355,57 +459,69 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
   return rotation;
 }
 
-
-void oled_render_layer_state(void) {
-    oled_write_P(PSTR("Layer: "), false);
-        if (IS_LAYER_ON(L_NAV)) {
-            oled_write_ln_P(PSTR("Navigation"), false);
-            return;
-        }
-        if (IS_LAYER_ON(L_NUM)) {
-            oled_write_ln_P(PSTR("Numpad"), false);
-            return;
-        }
-        if (IS_LAYER_ON(L_FUN)) {
-            oled_write_ln_P(PSTR("Function"), false);
-            return;
-        }
-        // Note: these should be last so that if other layers are active they get priority.
-        if (IS_LAYER_ON(L_COLE)) {
-            oled_write_ln_P(PSTR("Colemak"), false);
-            return;
-        }
-}
-
-void render_bootmagic_status(bool status) {
-    /* Show Ctrl-Gui Swap options */
-    static const char PROGMEM logo[][2][3] = {
-        {{0x97, 0x98, 0}, {0xb7, 0xb8, 0}},
-        {{0x95, 0x96, 0}, {0xb5, 0xb6, 0}},
-    };
-    if (status) {
-        oled_write_ln_P(logo[0][0], false);
-        oled_write_ln_P(logo[0][1], false);
-    } else {
-        oled_write_ln_P(logo[1][0], false);
-        oled_write_ln_P(logo[1][1], false);
-    }
-}
-
 void oled_render_logo(void) {
     static const char PROGMEM crkbd_logo[] = {
         0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f, 0x90, 0x91, 0x92, 0x93, 0x94,
         0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf, 0xb0, 0xb1, 0xb2, 0xb3, 0xb4,
         0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4,
         0};
-    oled_write_P(crkbd_logo, false);
+    oled_write_P(crkbd_logo, !IS_LAYER_ON(L_COLE));
 }
 
-void oled_task_user(void) {
+void oled_render_layer_state(void) {
+        // Must come before L_NUM as it's an overridelayer
+        if (IS_LAYER_ON(L_MOUS)) {
+            oled_write_ln_P(PSTR("MOUSE LOCK"), false);
+            return;
+        }
+        if (IS_LAYER_ON(L_NAV)) {
+            oled_write_ln_P(PSTR("NAVIGATION"), false);
+            return;
+        }
+        if (IS_LAYER_ON(L_SYM)) {
+            oled_write_ln_P(PSTR("SYMBOL"), false);
+            return;
+        }
+        // Must come before L_NUM as it's a one shot layer
+        if (IS_LAYER_ON(L_FUN)) {
+            oled_write_ln_P(PSTR("FN ONE-SHOT"), false);
+            return;
+        }
+        if (IS_LAYER_ON(L_NUM)) {
+            oled_write_ln_P(PSTR("NUMPAD"), false);
+            return;
+        }
+        if (IS_LAYER_ON(L_MED)) {
+            oled_write_ln_P(PSTR("MEDIA"), false);
+            return;
+        }
+        // Note: these should be last so that if other layers are active they get priority.
+        if (IS_LAYER_ON(L_COLE)) {
+            oled_write_ln_P(PSTR("COLEMAK"), false);
+            return;
+        }
+}
+
+void oled_render_mod_state(void) {
+        const uint8_t mods = get_mods() | get_oneshot_mods();
+        oled_write_P(PSTR("SFT"), mods & MOD_MASK_SHIFT);
+        oled_write_P(PSTR(" "), false);
+        oled_write_P(PSTR("CTL"), mods & MOD_MASK_CTRL);
+        oled_write_P(PSTR(" "), false);
+        oled_write_P(PSTR("GUI"), mods & MOD_MASK_GUI);
+        oled_write_P(PSTR(" "), false);
+        oled_write_P(PSTR("ALT"), mods & MOD_MASK_ALT);
+        oled_write_P(PSTR(" "), false);
+        oled_write_ln_P(PSTR("CAPS"), caps_word_enabled);
+}
+
+bool oled_task_user(void) {
     if (is_keyboard_master()) {
         oled_render_layer_state();
+        oled_render_mod_state();
     } else {
         oled_render_logo();
     }
+    return false;
 }
 #endif // OLED_ENABLE
