@@ -30,13 +30,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define USE_SERIAL_PD2
 
-// #define PERMISSIVE_HOLD
+#define PERMISSIVE_HOLD
 #define TAPPING_TERM 190
 #define ONESHOT_TAP_TOGGLE 2
 
 #define BILATERAL_COMBINATIONS
 
-#define COMBO_COUNT 7
+#define COMBO_COUNT 9
 #define COMBO_TERM 40
 
 #ifdef RGBLIGHT_ENABLE

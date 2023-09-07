@@ -62,6 +62,10 @@
 #define THM_5 LT(L_SYM,   KC_SPC)
 #define THM_6 KC_EQL
 
+// Redefine copy/paste for Mac
+#define KC_COPY LGUI(KC_C)
+#define KC_PSTE LGUI(KC_V)
+
 // Forward declaration for custom key functions
 bool process_caps_word(uint16_t keycode, keyrecord_t* record);
 
@@ -97,6 +101,10 @@ const uint16_t PROGMEM combo_wf[] = {KC_W, KC_F, COMBO_END};
 const uint16_t PROGMEM combo_fp[] = {KC_F, KC_P, COMBO_END};
 const uint16_t PROGMEM combo_pb[] = {KC_P, KC_B, COMBO_END};
 
+
+const uint16_t PROGMEM combo_cd[] = {KC_C, KC_D, COMBO_END};
+const uint16_t PROGMEM combo_dv[] = {KC_D, KC_V, COMBO_END};
+
 const uint16_t PROGMEM combo_jl[] = {KC_J, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_lu[] = {KC_L, KC_U, COMBO_END};
 const uint16_t PROGMEM combo_uy[] = {KC_U, KC_Y, COMBO_END};
@@ -128,6 +136,10 @@ combo_t key_combos[COMBO_COUNT] = {
     COMBO(combo_jl, KC_DRRW),
     COMBO(combo_lu, KC_DCLN),
     COMBO(combo_uy, KC_ARRW),
+
+    // Bottom row: quick copy and paste
+    COMBO(combo_cd, KC_COPY),
+    COMBO(combo_dv, KC_PSTE),
 
     // Caps Word
     COMBO(combo_tn, KC_CAPW),
@@ -193,7 +205,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, TO(L_MOUS)
+                                          XXXXXXX, XXXXXXX, XXXXXXX,    KC_SPCL, KC_SPCR, TO(L_MOUS)
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
