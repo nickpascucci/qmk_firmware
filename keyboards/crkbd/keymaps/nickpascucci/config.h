@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define BILATERAL_COMBINATIONS
 
-#define COMBO_COUNT 9
+#define COMBO_COUNT 10
 #define COMBO_TERM 40
 
 #ifdef RGBLIGHT_ENABLE

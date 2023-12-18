@@ -60,11 +60,16 @@
 
 #define THM_4 LT(L_MED,   KC_ENT)
 #define THM_5 LT(L_SYM,   KC_SPC)
-#define THM_6 KC_EQL
+#define THM_6 KC_MINS
 
 // Redefine copy/paste for Mac
 #define KC_COPY LGUI(KC_C)
 #define KC_PSTE LGUI(KC_V)
+#define KC_CUT  LGUI(KC_X)
+
+// Browser navigation
+#define KC_BCKH LGUI(KC_LBRC)
+#define KC_FWDH LGUI(KC_RBRC)
 
 // Forward declaration for custom key functions
 bool process_caps_word(uint16_t keycode, keyrecord_t* record);
@@ -96,12 +101,15 @@ uint8_t NUM_CUSTOM_SHIFT_KEYS =
 //
 // In selecting keys to use as combos, it's best to avoid using the pinkies where possible - because
 // they are so much weaker than the other fingers it makes it hard to hit both keys at once.
+//
+// Similarly, avoiding the home row is wise, especially on Colemak, because the inward rolls often
+// trigger macros accidentally.
 
 const uint16_t PROGMEM combo_wf[] = {KC_W, KC_F, COMBO_END};
 const uint16_t PROGMEM combo_fp[] = {KC_F, KC_P, COMBO_END};
 const uint16_t PROGMEM combo_pb[] = {KC_P, KC_B, COMBO_END};
 
-
+const uint16_t PROGMEM combo_xc[] = {KC_X, KC_C, COMBO_END};
 const uint16_t PROGMEM combo_cd[] = {KC_C, KC_D, COMBO_END};
 const uint16_t PROGMEM combo_dv[] = {KC_D, KC_V, COMBO_END};
 
@@ -127,6 +135,7 @@ enum custom_keycodes {
     KC_EXPS, // open expose view
 };
 
+// Note: If you add or remove elements from this array, update COMBO_COUNT in config.h
 combo_t key_combos[COMBO_COUNT] = {
     // Upper row: programming bigrams
     COMBO(combo_wf, KC_DPIP),
@@ -137,7 +146,8 @@ combo_t key_combos[COMBO_COUNT] = {
     COMBO(combo_lu, KC_DCLN),
     COMBO(combo_uy, KC_ARRW),
 
-    // Bottom row: quick copy and paste
+    // Bottom row: quick cut, copy, and paste
+    COMBO(combo_xc, KC_CUT),
     COMBO(combo_cd, KC_COPY),
     COMBO(combo_dv, KC_PSTE),
 
@@ -163,11 +173,11 @@ static uint16_t key_down_time = 0;
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_COLE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-       KC_GRV,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_MINS,
+      XXXXXXX,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_B,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LPRN,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), KC_QUOT,
+      XXXXXXX,   MA(A),   MG(R),   MC(S),   MS(T),   MH(G),                        MH(M),   MS(N),   MC(E),   MG(I),   MA(O), XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LCBR,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH, KC_LBRC,
+      XXXXXXX,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V,                         KC_K,    KC_H, KC_COMM,  KC_DOT, KC_SLSH, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                             THM_1,   THM_2,   THM_3,      THM_4,   THM_5,   THM_6
                                       //|--------+--------+--------|  |--------+--------+--------|
@@ -175,35 +185,35 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [L_SYM] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      KC_BSLS, KC_EXLM,   KC_AT, KC_HASH,  KC_DLR, KC_PERC,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      XXXXXXX, KC_EXLM,   KC_AT, KC_HASH, KC_LBRC, KC_PERC,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-       KC_EQL, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN,                      KC_HYPR, KC_RSFT, KC_RCTL, KC_RGUI, KC_RALT, XXXXXXX,
+      XXXXXXX, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN,  KC_DLR,                      KC_HYPR, KC_RSFT, KC_RCTL, KC_RGUI, KC_RALT, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, KC_LBRC, KC_RBRC, KC_LCBR, KC_RCBR,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      XXXXXXX, KC_BSLS,  KC_GRV, KC_PIPE, KC_LCBR, KC_TILD,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, KC_BSPC,  KC_TAB,    XXXXXXX, XXXXXXX, XXXXXXX
+                                           KC_EQL, KC_QUOT, KC_MINS,    XXXXXXX, XXXXXXX, XXXXXXX
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
   [L_NUM] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_TIME,                      KC_MSNC,    KC_7,    KC_8,    KC_9, KC_PLUS, XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_TIME,                      KC_PLUS,    KC_7,    KC_8,    KC_9, KC_ASTR, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_LALT, KC_LGUI, KC_LCTL, KC_LSFT, KC_HYPR,                      KC_SPCL,    KC_4,    KC_5,    KC_6,    KC_0, KC_SPCR,
+      XXXXXXX, KC_LALT, KC_LGUI, KC_LCTL, KC_LSFT, KC_HYPR,                       KC_EQL,    KC_4,    KC_5,    KC_6,    KC_0, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      KC_EXPS,    KC_1,    KC_2,    KC_3, OSL(L_FUN), XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      KC_MINS,    KC_1,    KC_2,    KC_3, KC_SLSH, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX
+                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, OSL(L_FUN)
                                       //|--------+--------+--------|  |--------+--------+--------|
   ),
 
   [L_NAV] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
+      XXXXXXX, KC_SPCL, KC_MSNC, KC_EXPS, KC_SPCR, XXXXXXX,                      KC_HOME, KC_PSTE, KC_COPY,  KC_CUT, KC_UNDO, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX, KC_LALT, KC_LGUI, KC_LCTL, KC_LSFT, KC_HYPR,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_AGIN, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                       KC_END, KC_PGDN, KC_PGUP, KC_HOME, XXXXXXX, XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                       KC_END, KC_PGDN, KC_PGUP, KC_BCKH, KC_FWDH, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           XXXXXXX, XXXXXXX, XXXXXXX,    KC_SPCL, KC_SPCR, TO(L_MOUS)
                                       //|--------+--------+--------|  |--------+--------+--------|
