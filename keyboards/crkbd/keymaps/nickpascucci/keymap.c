@@ -117,6 +117,15 @@ const uint16_t PROGMEM combo_jl[] = {KC_J, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_lu[] = {KC_L, KC_U, COMBO_END};
 const uint16_t PROGMEM combo_uy[] = {KC_U, KC_Y, COMBO_END};
 
+// Symbols use uppercase because we need ASCII identifiers
+const uint16_t PROGMEM combo_AH[] = {KC_AT, KC_HASH, COMBO_END};
+const uint16_t PROGMEM combo_HB[] = {KC_HASH, KC_LBRC, COMBO_END};
+const uint16_t PROGMEM combo_BP[] = {KC_LBRC, KC_PERC, COMBO_END};
+
+const uint16_t PROGMEM combo_AA[] = {KC_AMPR, KC_ASTR, COMBO_END};
+const uint16_t PROGMEM combo_AP[] = {KC_ASTR, KC_LPRN, COMBO_END};
+const uint16_t PROGMEM combo_PD[] = {KC_LPRN, KC_DLR, COMBO_END};
+
 const uint16_t PROGMEM combo_tn[] = {MS(T), MS(N), COMBO_END};
 
 // Custom keys can be used for macros. These must be handled in the process_record_user function
@@ -137,19 +146,19 @@ enum custom_keycodes {
 
 // Note: If you add or remove elements from this array, update COMBO_COUNT in config.h
 combo_t key_combos[COMBO_COUNT] = {
-    // Upper row: programming bigrams
-    COMBO(combo_wf, KC_DPIP),
-    COMBO(combo_fp, LCTL(KC_6)), // Vim: change to alternate buffer
-    COMBO(combo_pb, KC_DAMP),
-
-    COMBO(combo_jl, KC_DRRW),
-    COMBO(combo_lu, KC_DCLN),
-    COMBO(combo_uy, KC_ARRW),
-
     // Bottom row: quick cut, copy, and paste
     COMBO(combo_xc, KC_CUT),
     COMBO(combo_cd, KC_COPY),
     COMBO(combo_dv, KC_PSTE),
+
+    // Symbol rows: programming bigrams
+    COMBO(combo_AH, KC_DPIP),
+    COMBO(combo_HB, LCTL(KC_6)), // Vim: change to alternate buffer
+    COMBO(combo_BP, KC_DAMP),
+
+    COMBO(combo_AA, KC_DRRW),
+    COMBO(combo_AP, KC_DCLN),
+    COMBO(combo_PD, KC_ARRW),
 
     // Caps Word
     COMBO(combo_tn, KC_CAPW),
