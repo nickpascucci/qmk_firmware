@@ -34,7 +34,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define TAPPING_TERM 190
 #define ONESHOT_TAP_TOGGLE 2
 
+// See https://sunaku.github.io/home-row-mods.html
 #define BILATERAL_COMBINATIONS
+#define BILATERAL_COMBINATIONS_ALLOW_CROSSOVER_AFTER 75
+#define BILATERAL_COMBINATIONS_TYPING_STREAK_TIMEOUT 175
 
 #define COMBO_COUNT 10
 #define COMBO_TERM 40
