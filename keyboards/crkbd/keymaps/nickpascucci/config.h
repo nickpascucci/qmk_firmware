@@ -36,12 +36,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // See https://sunaku.github.io/home-row-mods.html
 #define BILATERAL_COMBINATIONS
-#define BILATERAL_COMBINATIONS_ALLOW_CROSSOVER_AFTER 75
+#define BILATERAL_COMBINATIONS_ALLOW_CROSSOVER_AFTER 50
 #define BILATERAL_COMBINATIONS_TYPING_STREAK_TIMEOUT 175
 #define BILATERAL_COMBINATIONS_TYPING_STREAK_MODMASK (~MOD_MASK_SHIFT)
 
 #define COMBO_COUNT 10
-#define COMBO_TERM 100
+#define COMBO_TERM 1000
 
 #ifdef RGBLIGHT_ENABLE
     #undef RGBLED_NUM

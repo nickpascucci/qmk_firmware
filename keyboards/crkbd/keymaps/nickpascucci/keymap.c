@@ -161,7 +161,7 @@ combo_t key_combos[COMBO_COUNT] = {
     COMBO(combo_PD, KC_ARRW),
 
     // Caps Word
-    COMBO(combo_tn, KC_CAPW),
+    // COMBO(combo_tn, KC_CAPW),
 };
 
 // Array containing the aggregate timing of keystrokes since last restart.
@@ -194,7 +194,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [L_SYM] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, KC_EXLM,   KC_AT, KC_HASH, KC_LBRC, KC_PERC,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      KC_CAPW, KC_EXLM,   KC_AT, KC_HASH, KC_LBRC, KC_PERC,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN,  KC_DLR,                      KC_HYPR, KC_RSFT, KC_RCTL, KC_RGUI, KC_RALT, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
